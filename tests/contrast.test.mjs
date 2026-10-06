@@ -20,17 +20,23 @@ const ratio = (a, b) => {
 
 /** Parejas texto/fondo que usa realmente el diseño. Mínimo WCAG AA para texto normal: 4,5. */
 const PAIRS = [
-  ['cobalt-deep', 'bone', 'texto principal sobre fondo claro'],
-  ['muted', 'bone', 'texto secundario sobre fondo claro'],
-  ['muted', 'bone-2', 'texto secundario sobre superficie'],
-  ['bone', 'cobalt', 'texto sobre hero y reservas'],
-  ['bone', 'cobalt-deep', 'texto sobre pie'],
-  ['saffron', 'cobalt', 'etiquetas azafrán sobre cobalto'],
-  ['saffron', 'cobalt-deep', 'enlaces azafrán sobre pie'],
-  ['cobalt-deep', 'saffron', 'franja de datos'],
-  ['cobalt-deep', 'orange', 'botón de reserva'],
-  ['bone', 'cobalt-deep', 'botón outline al pasar el ratón'],
-  ['bone', 'cobalt', 'botón principal'],
+  ['ink', 'ivory', 'texto principal'],
+  ['ink-2', 'ivory', 'texto secundario'],
+  ['mute', 'ivory', 'etiquetas y numeración'],
+  ['ink', 'sand', 'texto sobre la banda de reserva'],
+  ['ink-2', 'sand', 'texto secundario sobre la banda de reserva'],
+  ['mute', 'sand', 'etiquetas sobre la banda de reserva'],
+  ['ink', 'paper', 'texto en el panel del calendario'],
+  ['ink-2', 'paper', 'texto secundario en el panel del calendario'],
+  ['ink', 'sand-2', 'texto sobre bloques de fotografía y mapa'],
+  ['ink-2', 'sand-2', 'texto secundario sobre el bloque del mapa'],
+  ['ivory', 'ink', 'botón principal'],
+  ['ivory', 'bronze', 'botón principal al pasar el ratón'],
+  ['bronze', 'ivory', 'enlaces al pasar el ratón'],
+  ['bronze', 'sand', 'enlaces al pasar el ratón sobre la banda de reserva'],
+  ['night-text', 'night', 'texto del pie'],
+  ['night-mute', 'night', 'texto secundario del pie'],
+  ['bronze-lt', 'night', 'enlaces del pie al pasar el ratón'],
 ];
 
 describe('contraste de color (WCAG AA)', () => {
@@ -41,7 +47,4 @@ describe('contraste de color (WCAG AA)', () => {
     });
   }
 
-  it('texto blanco sobre el verde de WhatsApp', () => {
-    assert.ok(ratio('#FFFFFF', token('whatsapp')) >= 4.5);
-  });
 });

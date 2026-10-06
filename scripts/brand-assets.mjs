@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Regenera los recursos gráficos derivados de la marca a partir de las fuentes de `src/`:
- *   favicon-32.png, apple-touch-icon.png y og-image.jpg (imagen al compartir en redes).
- * Reutiliza la ilustración del hero de index.html, así que siempre coincide con la web.
+ *   favicon-32.png, apple-touch-icon.png (desde favicon.svg) y og-image.jpg (imagen al compartir en redes).
+ * La imagen Open Graph usa la fotografía de portada: al sustituir el placeholder por una foto real,
+ * conviene volver a ejecutar este script.
  * Requiere Playwright con Chromium (npx playwright install chromium).
  */
 import { readFileSync } from 'node:fs';
@@ -12,47 +13,46 @@ import { SRC } from './build.mjs';
 import { serve } from './serve.mjs';
 
 const IMG = join(SRC, 'assets/img');
-const index = readFileSync(join(SRC, 'index.html'), 'utf8');
-const art = index.slice(index.indexOf('<svg class="art"'), index.indexOf('</svg>', index.indexOf('<svg class="art"')) + 6);
 const favicon = readFileSync(join(IMG, 'favicon.svg'), 'utf8').replace('<svg ', '<svg width="100%" height="100%" ');
 
 const server = await serve(SRC, 0);
 const base = `http://localhost:${server.address().port}/`;
 const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 
-async function icon(size, file, radius) {
+async function icon(size, file) {
   const page = await browser.newPage({ viewport: { width: size, height: size } });
-  await page.setContent(`<body style="margin:0;background:#1B3590"><div style="width:${size}px;height:${size}px;border-radius:${radius}px;overflow:hidden">${favicon}</div></body>`);
+  await page.setContent(`<body style="margin:0;background:#1E1C1A"><div style="width:${size}px;height:${size}px">${favicon}</div></body>`);
   await page.screenshot({ path: join(IMG, file) });
   await page.close();
 }
-await icon(32, 'favicon-32.png', 0);
-await icon(180, 'apple-touch-icon.png', 0);
+await icon(32, 'favicon-32.png');
+await icon(180, 'apple-touch-icon.png');
 
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 } });
-// Mismo origen que las fuentes y el sprite (si no, el navegador los bloquea)
+// Mismo origen que las fuentes y la fotografía (si no, el navegador las bloquea)
 await page.goto(`${base}404.html`);
 await page.setContent(`<!DOCTYPE html><html><head><meta charset="utf-8"><base href="${base}"><style>
-@font-face{font-family:"Young Serif";src:url("assets/fonts/young-serif.woff2") format("woff2")}
-@font-face{font-family:"DM Sans";src:url("assets/fonts/dm-sans.woff2") format("woff2");font-weight:400 700}
+@font-face{font-family:"Instrument Serif";src:url("assets/fonts/instrument-serif.woff2") format("woff2")}
+@font-face{font-family:"Instrument Serif";font-style:italic;src:url("assets/fonts/instrument-serif-italic.woff2") format("woff2")}
+@font-face{font-family:"Hanken Grotesk";src:url("assets/fonts/hanken-grotesk.woff2") format("woff2");font-weight:300 600}
 *{box-sizing:border-box}
-body{margin:0;width:1200px;height:630px;position:relative;overflow:hidden;color:#FBF6EA;font-family:"DM Sans",sans-serif;
-  background:radial-gradient(800px 500px at 0% 0%,rgba(255,255,255,.12),transparent 60%),radial-gradient(700px 500px at 100% 100%,rgba(8,18,70,.6),transparent 60%),#1B3590}
-.pat{position:absolute;inset:0;background:url("assets/img/tile-dark.svg") 0 0/80px 80px;-webkit-mask-image:linear-gradient(90deg,transparent 30%,#000 80%)}
-.brand{position:absolute;left:72px;top:64px;display:flex;align-items:center;gap:16px}
-.brand svg{width:56px;height:56px;color:#FBF6EA;--petal:#12236B}
-.brand b{display:block;font:400 40px/1 "Young Serif",serif}.brand i{display:block;margin-top:6px;font:700 13px/1 "DM Sans";font-style:normal;letter-spacing:.26em;text-transform:uppercase;color:rgba(251,246,234,.8)}
-h1{position:absolute;left:72px;top:190px;width:600px;margin:0;font:400 70px/1.04 "Young Serif",serif;letter-spacing:-.012em}
-h1 span{color:#F2B63B}
-p{position:absolute;left:72px;bottom:64px;margin:0;font:500 26px/1.3 "DM Sans";color:rgba(251,246,234,.9)}
-.art{position:absolute;right:66px;top:34px;width:462px;transform:rotate(1.6deg);filter:drop-shadow(0 26px 30px rgba(5,12,52,.5))}
-</style></head><body><div class="pat"></div>
-<div class="brand"><svg viewBox="-24 -24 48 48"><use href="assets/img/sprite.svg#azahar" x="-24" y="-24" width="48" height="48"/></svg><div><b>Azahar</b><i>Nail Studio</i></div></div>
-<h1>Uñas y limpieza facial en <span>Triana</span>, Sevilla</h1>
+body{margin:0;width:1200px;height:630px;position:relative;overflow:hidden;background:#F5F1E9;color:#1E1C1A;font-family:"Hanken Grotesk",sans-serif}
+.brand{position:absolute;left:72px;top:60px;display:flex;align-items:baseline;gap:14px}
+.brand b{font:400 40px/1 "Instrument Serif",serif;letter-spacing:-.01em}
+.brand i{font:500 12px/1 "Hanken Grotesk";font-style:normal;letter-spacing:.2em;text-transform:uppercase;color:#4A4640}
+h1{position:absolute;left:72px;top:176px;width:660px;margin:0;font:400 88px/.95 "Instrument Serif",serif;letter-spacing:-.022em}
+h1 em{letter-spacing:-.012em;white-space:nowrap}
+p{position:absolute;left:72px;bottom:60px;margin:0;font:400 24px/1.3 "Hanken Grotesk";color:#4A4640}
+img{position:absolute;right:0;top:0;width:440px;height:630px;object-fit:cover}
+</style></head><body>
+<div class="brand"><b>Azahar</b><i>Nail Studio</i></div>
+<h1>Uñas y limpieza facial en <em>Triana, Sevilla</em></h1>
 <p>Reserva tu hora online</p>
-<div class="art">${art.replace('class="art"', 'width="462"')}</div></body></html>`);
-await page.waitForTimeout(1200);
-await page.screenshot({ path: join(IMG, 'og-image.jpg'), type: 'jpeg', quality: 84 });
+<img src="assets/img/photos/portada.webp" alt=""></body></html>`);
+await page.evaluate(() => document.fonts.ready);
+await page.waitForFunction(() => Array.from(document.images).every((i) => i.complete));
+await page.waitForTimeout(600);
+await page.screenshot({ path: join(IMG, 'og-image.jpg'), type: 'jpeg', quality: 86 });
 
 await browser.close();
 server.close();

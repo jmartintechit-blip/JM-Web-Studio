@@ -54,13 +54,11 @@
 
     // Menú móvil
     if (!burger || !nav) return;
-    var icon = $('use', burger);
-    var sprite = icon ? icon.getAttribute('href').split('#')[0] : '';   // el sprite es un archivo externo
+    var label = $('.burger__label', burger);
     function setMenu(open) {
       nav.classList.toggle('is-open', open);
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
-      burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
-      if (icon) icon.setAttribute('href', sprite + (open ? '#i-close' : '#i-menu'));
+      if (label) label.textContent = open ? 'Cerrar' : 'Menú';
       doc.body.style.overflow = open ? 'hidden' : '';
     }
     burger.addEventListener('click', function () { setMenu(!nav.classList.contains('is-open')); });
@@ -69,7 +67,7 @@
       if (!nav.classList.contains('is-open')) return;
       if (e.key === 'Escape') { setMenu(false); burger.focus(); return; }
       if (e.key === 'Tab') {                        // atrapa el foco dentro del menú abierto
-        var f = [$('.brand', header), burger].concat($$('a', nav)).filter(Boolean);
+        var f = $$('a, button', header).filter(function (el) { return el.getClientRects().length > 0; });
         var first = f[0], last = f[f.length - 1];
         if (e.shiftKey && doc.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && doc.activeElement === last) { e.preventDefault(); first.focus(); }
@@ -100,7 +98,7 @@
     var items = $$('.reveal');
     if (!items.length) return;
 
-    // Escalonado suave en el texto del hero
+    // Escalonado suave en el texto de la portada
     $$('.hero__copy .reveal').forEach(function (el, i) { el.style.setProperty('--d', (i * 0.09) + 's'); });
 
     function show(el) { el.classList.add('is-in'); }
@@ -118,32 +116,7 @@
   }
 
   /* ---------------------------------------------------------------------
-     4. Parallax suave del hero (solo puntero fino y sin "reducir movimiento")
-     --------------------------------------------------------------------- */
-  function initHeroParallax() {
-    var art = $('#hero-art');
-    if (!art || reduceMotion) return;
-    if (!(window.matchMedia && window.matchMedia('(hover: hover) and (pointer: fine)').matches)) return;
-    var raf = null;
-    art.addEventListener('pointermove', function (e) {
-      var r = art.getBoundingClientRect();
-      var x = (e.clientX - r.left) / r.width - 0.5;
-      var y = (e.clientY - r.top) / r.height - 0.5;
-      if (raf) return;
-      raf = window.requestAnimationFrame(function () {
-        art.style.setProperty('--px', x.toFixed(3));
-        art.style.setProperty('--py', y.toFixed(3));
-        raf = null;
-      });
-    });
-    art.addEventListener('pointerleave', function () {
-      art.style.setProperty('--px', 0);
-      art.style.setProperty('--py', 0);
-    });
-  }
-
-  /* ---------------------------------------------------------------------
-     5. Consentimiento (cal = reservas Cal.com, maps = Google Maps)
+     4. Consentimiento (cal = reservas Cal.com, maps = Google Maps)
         Nada de terceros se carga hasta que la persona lo acepta.
      --------------------------------------------------------------------- */
   var CONSENT_KEY = 'azahar-consent-v1';
@@ -207,7 +180,7 @@
   }
 
   /* ---------------------------------------------------------------------
-     6. Reservas: Cal.com inline + selector de servicio
+     5. Reservas: Cal.com inline + selector de servicio
      --------------------------------------------------------------------- */
   var CAL_NS = 'azahar';
   var calSection, calOrigin, calBase;
@@ -247,7 +220,7 @@
     window.Cal('init', CAL_NS, { origin: calOrigin });
     window.Cal.ns[CAL_NS]('ui', {
       theme: 'light',
-      styles: { branding: { brandColor: '#1B3590' } },
+      styles: { branding: { brandColor: '#1E1C1A' } },
       hideEventTypeDetails: false,
       layout: 'month_view'
     });
@@ -372,7 +345,7 @@
   }
 
   /* ---------------------------------------------------------------------
-     7. Mapa de Google (tras consentimiento)
+     6. Mapa de Google (tras consentimiento)
      --------------------------------------------------------------------- */
   function loadMap() {
     var wrap = $('#map-wrap');
@@ -407,7 +380,7 @@
   }
 
   /* ---------------------------------------------------------------------
-     8. Barra fija móvil: solo aparece cuando el botón principal del hero
+     7. Barra fija móvil: solo aparece cuando el botón principal del hero
         ha salido de pantalla y se oculta mientras se ve el calendario
      --------------------------------------------------------------------- */
   function initMobileBar() {
@@ -427,7 +400,7 @@
   }
 
   /* ---------------------------------------------------------------------
-     9. Pequeños detalles
+     8. Pequeños detalles
      --------------------------------------------------------------------- */
   function initYear() {
     var y = $('#year');
@@ -461,7 +434,6 @@
     safe(initHeader, 'header');
     safe(initDemoBar, 'demo-bar');
     safe(initReveal, 'reveal');
-    safe(initHeroParallax, 'parallax');
     safe(initBooking, 'booking');
     safe(initMap, 'map');
     safe(initMobileBar, 'mobile-bar');

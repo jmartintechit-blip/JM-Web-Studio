@@ -177,11 +177,10 @@ describe('contenido contra los datos reales del negocio', () => {
       name: e.querySelector('.svc__name').textContent.trim(),
       min: e.querySelector('.svc__min').textContent.trim(),
       price: e.querySelector('.svc__price').textContent.replace(/ /g, ' ').replace('Precio:', '').trim(),
-      barMinutes: Number(e.querySelector('.svc__fill').style.getPropertyValue('--min')),
       link: e.querySelector('[data-cal-link]').getAttribute('data-cal-link'),
     })));
     await close();
-    assert.deepEqual(rows, business.services.map((s) => ({ name: s.name, min: s.duration, price: `${s.price} €`, barMinutes: s.minutes, link: slugLink(s.slug) })));
+    assert.deepEqual(rows, business.services.map((s) => ({ name: s.name, min: s.duration, price: `${s.price} €`, link: slugLink(s.slug) })));
   });
 
   it('todos los enlaces de WhatsApp apuntan al número real con mensaje', async () => {
@@ -257,7 +256,7 @@ describe('consentimiento y reservas', () => {
     let calls = await tab.evaluate(() => window.__calCalls);
     assert.ok(calls.some((c) => c[0] === 'inline' && c[2] === business.cal.user), JSON.stringify(calls));
     const ui = calls.find((c) => c[0] === 'ui');
-    assert.equal(ui[2].styles.branding.brandColor, '#1B3590', 'el calendario usa el color de marca');
+    assert.equal(ui[2].styles.branding.brandColor, '#1E1C1A', 'el calendario usa el color de marca');
 
     await tab.evaluate(() => document.querySelector('#contacto').scrollIntoView());
     await tab.waitForSelector('#map-wrap iframe', { timeout: 6000 });
@@ -320,10 +319,11 @@ describe('móvil', () => {
     await tab.waitForTimeout(450);
     assert.equal(await tab.getAttribute('#burger', 'aria-expanded'), 'true');
     assert.ok(await tab.isVisible('#nav'));
-    assert.match(await tab.getAttribute('#burger use', 'href'), /sprite\.svg#i-close$/, 'el icono del menú pasa a "cerrar" usando el sprite externo');
+    assert.equal((await tab.textContent('#burger')).trim(), 'Cerrar', 'el botón del menú cambia su etiqueta a "Cerrar"');
     await tab.keyboard.press('Escape');
     await tab.waitForTimeout(450);
     assert.equal(await tab.getAttribute('#burger', 'aria-expanded'), 'false');
+    assert.equal((await tab.textContent('#burger')).trim(), 'Menú');
     await tab.tap('#burger');
     await tab.waitForTimeout(450);
     await tab.tap('.nav__list a[href="#servicios"]');
@@ -355,7 +355,7 @@ describe('móvil', () => {
 
   it('objetivos táctiles de botones y enlaces propios >= 44 px de alto', async () => {
     const { tab, close } = await open('index.html', { width: 390, height: 844, consent: REJECTED, touch: true });
-    const small = await tab.$$eval('.btn, .chip, .burger, .nav__list a, .text-link, .embed__alt, .footer__nav a, .footer__nav button', (els) => els
+    const small = await tab.$$eval('.btn, .chip, .burger, .nav__list a, .link, .svc__cta span, .footer__col a, .footer__col button, .footer__legal a', (els) => els
       .filter((e) => { const r = e.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(e).visibility !== 'hidden' && r.height < 43.5; })
       .map((e) => `${(e.textContent || e.getAttribute('aria-label') || '').trim().slice(0, 24)} (${Math.round(e.getBoundingClientRect().height)}px)`));
     await close();
@@ -395,12 +395,12 @@ describe('teclado, movimiento reducido y rendimiento', () => {
     await tab.goto(url('index.html'));
     await tab.waitForTimeout(1200);
     const state = await tab.evaluate(() => ({
-      nail: getComputedStyle(document.querySelector('.nail--3')).animationName,
+      photoTransition: getComputedStyle(document.querySelector('.hero__media img')).transitionDuration,
       scroll: getComputedStyle(document.documentElement).scrollBehavior,
       title: getComputedStyle(document.querySelector('.hero__title')).opacity,
     }));
     await context.close();
-    assert.deepEqual(state, { nail: 'none', scroll: 'auto', title: '1' });
+    assert.deepEqual(state, { photoTransition: '0s', scroll: 'auto', title: '1' });
   });
 
   it('el indicador "abierto ahora" coincide con el horario en hora de Madrid', async () => {
@@ -414,7 +414,7 @@ describe('teclado, movimiento reducido y rendimiento', () => {
     assert.equal(shown, isOpen ? 'Abierto ahora, hasta las 17:00' : 'Cerrado ahora');
   });
 
-  it('presupuesto de peso: la portada carga poco y sin imágenes ni recursos externos', async () => {
+  it('presupuesto de peso: la portada móvil carga poco y las fotografías lejanas se difieren', async () => {
     const context = await newContext(browser, { width: 390, height: 844, consent: REJECTED, touch: true });
     const tab = await context.newPage();
     let bytes = 0;
@@ -427,8 +427,30 @@ describe('teclado, movimiento reducido y rendimiento', () => {
     await blockExternal(tab, site.base);
     await tab.goto(url('index.html'), { waitUntil: 'networkidle' });
     await context.close();
-    assert.ok(bytes < 260 * 1024, `la portada pesa ${(bytes / 1024).toFixed(0)} KB sin comprimir`);
-    const raster = images.filter((src) => !/\.svg$|favicon|apple-touch-icon/.test(src));
-    assert.deepEqual(raster, [], 'la portada no debe descargar imágenes de mapa de bits (solo SVG y favicon)');
+    assert.ok(bytes < 300 * 1024, `la portada pesa ${(bytes / 1024).toFixed(0)} KB sin comprimir`);
+    const photos = images.filter((src) => /\/photos\//.test(src)).map((src) => src.split('/').pop());
+    assert.ok(photos.includes('portada.webp'), 'la foto de portada debe cargar de inmediato');
+    assert.ok(!photos.includes('galeria-3.webp'), `la galería final debe cargarse en diferido (cargadas: ${photos.join(', ')})`);
+  });
+
+  it('las imágenes declaran dimensiones, carga adecuada y marcan los placeholders', async () => {
+    const { tab, close } = await open('index.html', { consent: REJECTED });
+    const imgs = await tab.$$eval('img', (els) => els.map((i) => ({
+      src: i.getAttribute('src'), w: i.getAttribute('width'), h: i.getAttribute('height'), alt: i.getAttribute('alt'),
+      loading: i.getAttribute('loading'), priority: i.getAttribute('fetchpriority'), placeholder: i.hasAttribute('data-placeholder'),
+    })));
+    await close();
+    assert.equal(imgs.length, 5, 'portada, estudio y tres de galería');
+    for (const img of imgs) {
+      assert.ok(img.w && img.h, `${img.src}: sin width/height (provoca saltos de maquetación)`);
+      assert.notEqual(img.alt, null, `${img.src}: falta el atributo alt`);
+      if (img.placeholder) assert.equal(img.alt, '', `${img.src}: un placeholder decorativo debe tener alt vacío; al poner una foto real hay que describirla y quitar data-placeholder`);
+      else assert.ok(img.alt.length > 5, `${img.src}: una foto real necesita un alt descriptivo`);
+    }
+    const hero = imgs.find((i) => /portada/.test(i.src));
+    assert.equal(hero.priority, 'high');
+    assert.notEqual(hero.loading, 'lazy');
+    for (const img of imgs.filter((i) => i !== hero)) assert.equal(img.loading, 'lazy', `${img.src} debe cargarse en diferido`);
+    console.log(`   (aviso) ${imgs.filter((i) => i.placeholder).length} de ${imgs.length} fotografías son placeholders pendientes de sustituir por fotos reales`);
   });
 });
