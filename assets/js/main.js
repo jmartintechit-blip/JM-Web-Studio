@@ -178,6 +178,13 @@
     onConsent.forEach(function (fn) { safe(fn, 'consent-listener'); });
   }
 
+  function setBanner(open) {
+    var banner = $('#cookie-banner');
+    if (!banner) return;
+    banner.hidden = !open;
+    doc.body.classList.toggle('cookie-open', open);
+  }
+
   function initConsent() {
     readConsent();
     var banner = $('#cookie-banner');
@@ -188,9 +195,9 @@
     function openBanner(withConfig) {
       if (toggle) toggle.checked = consent.cal === true && consent.maps === true;
       if (config) config.hidden = !withConfig;
-      banner.hidden = false;
+      setBanner(true);
     }
-    function closeBanner() { banner.hidden = true; }
+    function closeBanner() { setBanner(false); }
 
     banner.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-consent]');
@@ -348,7 +355,7 @@
     var load = $('#cal-load');
     if (load) load.addEventListener('click', function () {
       consent.cal = true; writeConsent();
-      var b = $('#cookie-banner'); if (b && consent.maps === null) b.hidden = true;
+      if (consent.maps === null) setBanner(false);
       renderCal(currentLink);
     });
 
@@ -396,7 +403,7 @@
     var load = $('#map-load');
     if (load) load.addEventListener('click', function () {
       consent.maps = true; writeConsent();
-      var b = $('#cookie-banner'); if (b && consent.cal === null) b.hidden = true;
+      if (consent.cal === null) setBanner(false);
       loadMap();
     });
     if (consent.maps === true) {
