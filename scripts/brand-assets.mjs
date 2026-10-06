@@ -47,7 +47,7 @@ img{position:absolute;right:0;top:0;width:440px;height:630px;object-fit:cover}
 </style></head><body>
 <div class="brand"><b>Azahar</b><i>Nail Studio</i></div>
 <h1>Uñas y limpieza facial en <em>Triana, Sevilla</em></h1>
-<p>Reserva tu hora online</p>
+<p>Reserva tu cita online</p>
 <img src="assets/img/photos/portada.webp" alt=""></body></html>`);
 await page.evaluate(() => document.fonts.ready);
 await page.waitForFunction(() => Array.from(document.images).every((i) => i.complete));

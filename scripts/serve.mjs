@@ -12,7 +12,9 @@ const MIME = {
 export function serve(root, port = 0) {
   const base = resolve(root);
   const server = createServer(async (req, res) => {
-    const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    let pathname;
+    try { pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname); }
+    catch { res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('400'); }
     const target = resolve(join(base, normalize(pathname === '/' ? '/index.html' : pathname)));
     let status = 200;
     let file = target;

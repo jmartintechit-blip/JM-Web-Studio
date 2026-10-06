@@ -49,7 +49,7 @@
           if (a) { a.classList.add('is-current'); a.setAttribute('aria-current', 'true'); }
         });
       }, { rootMargin: '-45% 0px -50% 0px' });
-      Object.keys(map).forEach(function (id) { var s = doc.getElementById(id); if (s) io.observe(s); });
+      $$('main > section[id]').forEach(function (s) { io.observe(s); });   // las secciones sin enlace limpian el estado
     }
 
     // Menú móvil
@@ -62,7 +62,7 @@
       doc.body.style.overflow = open ? 'hidden' : '';
     }
     burger.addEventListener('click', function () { setMenu(!nav.classList.contains('is-open')); });
-    $$('a', nav).forEach(function (a) { a.addEventListener('click', function () { setMenu(false); }); });
+    $$('a', header).forEach(function (a) { a.addEventListener('click', function () { if (nav.classList.contains('is-open')) setMenu(false); }); });
     doc.addEventListener('keydown', function (e) {
       if (!nav.classList.contains('is-open')) return;
       if (e.key === 'Escape') { setMenu(false); burger.focus(); return; }
@@ -98,9 +98,6 @@
     var items = $$('.reveal');
     if (!items.length) return;
 
-    // Escalonado suave en el texto de la portada
-    $$('.hero__copy .reveal').forEach(function (el, i) { el.style.setProperty('--d', (i * 0.09) + 's'); });
-
     function show(el) { el.classList.add('is-in'); }
     if (!('IntersectionObserver' in window)) { items.forEach(show); return; }
 
@@ -121,6 +118,7 @@
      --------------------------------------------------------------------- */
   var CONSENT_KEY = 'azahar-consent-v1';
   var consent = { cal: null, maps: null };
+  var applied = { cal: false, maps: false };   // terceros realmente cargados en esta página
   var onConsent = [];
 
   function readConsent() {
@@ -135,6 +133,12 @@
   }
   function writeConsent() {
     store.set('localStorage', CONSENT_KEY, JSON.stringify({ cal: consent.cal, maps: consent.maps, ts: Date.now() }));
+    // Si se retira el permiso de algo que ya está cargado, se recarga la página: es la forma fiable de descargar un tercero
+    if ((applied.cal && consent.cal !== true) || (applied.maps && consent.maps !== true)) {
+      try { window.history.replaceState(null, '', window.location.pathname + window.location.search); } catch (e) { /* sin historial */ }
+      window.location.reload();
+      return;
+    }
     onConsent.forEach(function (fn) { safe(fn, 'consent-listener'); });
   }
 
@@ -152,12 +156,27 @@
     var toggle = $('#consent-third');
     if (!banner) return;
 
-    function openBanner(withConfig) {
-      if (toggle) toggle.checked = consent.cal === true && consent.maps === true;
-      if (config) config.hidden = !withConfig;
-      setBanner(true);
+    var configBtn = $('[data-consent="config"]', banner);
+    var lastTrigger = null;   // elemento que reabrió el banner: recibe el foco al cerrarlo
+    function setConfig(open) {
+      if (config) config.hidden = !open;
+      if (configBtn) configBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
-    function closeBanner() { setBanner(false); }
+    function openBanner(withConfig, trigger) {
+      if (toggle) toggle.checked = consent.cal === true && consent.maps === true;
+      setConfig(withConfig);
+      setBanner(true);
+      if (trigger) {                                   // solo si la persona lo pidió: no se roba el foco en la primera visita
+        var title = $('.cookie__title', banner);
+        var target = title && title.getClientRects().length ? title : $('[data-consent="reject"]', banner);
+        if (target) { target.setAttribute('tabindex', '-1'); target.focus({ preventScroll: true }); }
+        lastTrigger = trigger;
+      }
+    }
+    function closeBanner() {
+      setBanner(false);
+      if (lastTrigger) { lastTrigger.focus(); lastTrigger = null; }
+    }
 
     banner.addEventListener('click', function (e) {
       var btn = e.target.closest('[data-consent]');
@@ -165,7 +184,7 @@
       var action = btn.getAttribute('data-consent');
       if (action === 'accept') { consent.cal = true; consent.maps = true; writeConsent(); closeBanner(); }
       else if (action === 'reject') { consent.cal = false; consent.maps = false; writeConsent(); closeBanner(); }
-      else if (action === 'config') { if (config) config.hidden = !config.hidden; }
+      else if (action === 'config') { setConfig(!!(config && config.hidden)); }
       else if (action === 'save') {
         var on = !!(toggle && toggle.checked);
         consent.cal = on; consent.maps = on; writeConsent(); closeBanner();
@@ -173,7 +192,7 @@
     });
 
     var reopen = $('#cookie-reopen');
-    if (reopen) reopen.addEventListener('click', function () { openBanner(true); });
+    if (reopen) reopen.addEventListener('click', function () { openBanner(true, reopen); });
 
     if (window.location.hash === '#cookies') openBanner(true);
     else if (consent.cal === null && consent.maps === null) openBanner(false);
@@ -241,15 +260,26 @@
     if (fb) fb.hidden = false;
   }
 
+  function setStatus(id, text) {
+    var el = $('#' + id);
+    if (el) el.textContent = text;
+  }
+  function activeServiceName() {
+    var chip = $('#service-chips .chip.is-active');
+    return chip ? chip.getAttribute('data-service') : '';
+  }
+
   function renderCal(link) {
     currentLink = link;
     var gate = $('#cal-gate');
     var host = $('#cal-inline');
     var fb = $('#cal-fallback');
-    if (!host) return;
+    if (!host || consent.cal !== true) return;
     safe(bootCal, 'cal-boot');
     if (!calReady) { showCalFallback(); return; }
 
+    applied.cal = true;
+    setStatus('embed-status', 'Cargando el calendario de ' + activeServiceName() + '…');
     if (gate) gate.hidden = true;
     if (fb) fb.hidden = true;
     host.hidden = false;
@@ -290,7 +320,7 @@
     var panel = $('#cal-embed-wrap');
     if (!panel || consent.cal !== true) return;
     var started = false;
-    function go() { if (started) return; started = true; renderCal(currentLink); }
+    function go() { if (started || calSeq) return; started = true; renderCal(currentLink); }   // calSeq: ya se pintó (botón o chip)
     if (!('IntersectionObserver' in window)) { go(); return; }
     var io = new IntersectionObserver(function (entries) {
       if (entries.some(function (e) { return e.isIntersecting; })) { io.disconnect(); go(); }
@@ -319,6 +349,8 @@
       consent.cal = true; writeConsent();
       if (consent.maps === null) setBanner(false);
       renderCal(currentLink);
+      var chip = $('#service-chips .chip.is-active');     // el botón desaparece: el foco pasa al selector de servicio
+      if (chip) chip.focus({ preventScroll: true });
     });
 
     // Todos los botones "Reservar" y "Reservar cita"
@@ -326,14 +358,13 @@
       a.addEventListener('click', function (e) {
         e.preventDefault();
         var link = a.getAttribute('data-cal-link');
-        var target = $('#cal-panel') || calSection;
-        if (link) { selectService(link); }
-        else { target = calSection; }
+        if (link) selectService(link);
+        // En pantallas de una columna se va directo al selector y al calendario; en escritorio, al título de la sección
+        var narrow = window.matchMedia && window.matchMedia('(max-width: 1020px)').matches;
+        var target = (narrow && $('#cal-panel')) || (link && $('#cal-panel')) || calSection;
         target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
-        if (link) {
-          var active = $('#service-chips .chip.is-active');
-          if (active) window.setTimeout(function () { try { active.focus({ preventScroll: true }); } catch (err) { active.focus(); } }, reduceMotion ? 0 : 600);
-        }
+        var active = $('#service-chips .chip.is-active');   // el foco sigue al scroll: el siguiente Tab continúa en el calendario
+        if (active) active.focus({ preventScroll: true });
       });
     });
 
@@ -347,10 +378,10 @@
   /* ---------------------------------------------------------------------
      6. Mapa de Google (tras consentimiento)
      --------------------------------------------------------------------- */
-  function loadMap() {
+  function loadMap(focusIt) {
     var wrap = $('#map-wrap');
     var gate = $('#map-gate');
-    if (!wrap || $('iframe', wrap)) return;
+    if (!wrap || consent.maps !== true || $('iframe', wrap)) return;
     var f = doc.createElement('iframe');
     f.src = wrap.getAttribute('data-src');
     f.title = wrap.getAttribute('data-title') || 'Mapa de ubicación';
@@ -358,7 +389,10 @@
     f.referrerPolicy = 'no-referrer-when-downgrade';
     f.setAttribute('allowfullscreen', '');
     wrap.appendChild(f);
+    applied.maps = true;
     if (gate) gate.hidden = true;
+    setStatus('map-status', 'Cargando el mapa de Triana…');
+    if (focusIt) f.focus({ preventScroll: true });       // el botón desaparece: el foco pasa al mapa
   }
 
   function initMap() {
@@ -366,7 +400,7 @@
     if (load) load.addEventListener('click', function () {
       consent.maps = true; writeConsent();
       if (consent.cal === null) setBanner(false);
-      loadMap();
+      loadMap(true);
     });
     if (consent.maps === true) {
       var wrap = $('#map-wrap');

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Azahar Nail Studio | Uñas y estética en Triana, Sevilla</title>
-  <meta name="description" content="Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial en Triana, Sevilla. Consulta precios y reserva tu hora online.">
+  <meta name="description" content="Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial en Triana, Sevilla. Consulta precios y reserva tu cita online.">
   <meta name="theme-color" content="#F5F1E9">
   <link rel="canonical" href="%SITE_URL%/">
   <!-- scripts/build.mjs elimina esta etiqueta cuando INDEXABLE=true -->
@@ -14,7 +14,7 @@
   <meta property="og:locale" content="es_ES">
   <meta property="og:site_name" content="Azahar Nail Studio">
   <meta property="og:title" content="Azahar Nail Studio | Uñas y estética en Triana, Sevilla">
-  <meta property="og:description" content="Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial. Reserva tu hora online.">
+  <meta property="og:description" content="Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial. Reserva tu cita online.">
   <meta property="og:url" content="%SITE_URL%/">
   <meta property="og:image" content="%SITE_URL%/assets/img/og-image.jpg">
   <meta property="og:image:width" content="1200">
@@ -31,6 +31,8 @@
   <link rel="preload" href="assets/img/photos/portada.webp" as="image" type="image/webp" fetchpriority="high">
   <script>document.documentElement.className += ' js';</script>
   <link rel="stylesheet" href="assets/css/styles.css">
+  <!-- Sin JavaScript el menú móvil no puede abrirse: se muestra como una fila de enlaces bajo la cabecera -->
+  <noscript><style>@media (max-width:900px){.burger{display:none}.header__inner--site{grid-template-columns:1fr auto}.header__inner--site .brand{justify-self:start}.nav{position:static;opacity:1;visibility:visible;height:auto;padding:0;background:none;grid-column:1/-1;grid-row:2}.nav__list{flex-direction:row;flex-wrap:wrap;gap:0 22px}.nav__list a{font-family:var(--font-ui);font-size:.9375rem;letter-spacing:0;padding:10px 0;border:0;width:auto}}</style></noscript>
 
   <script type="application/ld+json">
   {
@@ -76,11 +78,11 @@
 <section class="cookie" id="cookie-banner" aria-label="Preferencias de cookies" hidden>
   <div class="cookie__body">
     <p class="cookie__title">Tu privacidad</p>
-    <p class="cookie__text">Esta web solo usa almacenamiento técnico necesario. Para mostrar el calendario de reservas (Cal.com) y el mapa (Google Maps) hay que cargar servicios de terceros que pueden usar cookies. Tú decides. <a href="politica-cookies.html">Más información</a></p>
+    <p class="cookie__text">Esta web solo usa almacenamiento técnico necesario. El calendario de reservas (Cal.com) y el mapa (Google Maps) son servicios de terceros que pueden usar cookies: solo se cargan si tú lo decides. <a href="politica-cookies.html">Más información</a></p>
     <div class="cookie__actions">
       <button type="button" class="btn btn--line" data-consent="reject">Rechazar</button>
       <button type="button" class="btn btn--line" data-consent="accept">Aceptar</button>
-      <button type="button" class="btn btn--text" data-consent="config">Configurar</button>
+      <button type="button" class="btn btn--text" data-consent="config" aria-expanded="false" aria-controls="cookie-config">Configurar</button>
     </div>
     <div class="cookie__config" id="cookie-config" hidden>
       <div class="cookie__row">
@@ -132,19 +134,21 @@
   <section class="hero" id="inicio" aria-labelledby="hero-title">
     <div class="wrap hero__grid">
       <div class="hero__copy">
-        <h1 class="hero__title reveal" id="hero-title">Uñas y limpieza facial en <em class="nb">Triana, Sevilla</em></h1>
+        <h1 class="hero__title" id="hero-title">Uñas y limpieza facial en <em>Triana, Sevilla</em></h1>
         <div class="hero__foot">
-          <p class="hero__lead reveal">Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial.</p>
-          <div class="hero__actions reveal">
+          <p class="hero__lead">Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial.</p>
+          <div class="hero__actions">
             <a class="btn" href="#reservar" data-book id="hero-cta">Reservar cita</a>
             <a class="link" href="#servicios">Ver servicios</a>
           </div>
-          <p class="hero__meta reveal">Lunes a viernes, de 9:00 a 17:00 <span aria-hidden="true">·</span> <a href="tel:+34624293129" class="nb">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></p>
+          <p class="hero__meta">Lunes a viernes, de 9:00 a 17:00 <span aria-hidden="true">·</span> <a href="tel:+34624293129" class="nb">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></p>
         </div>
       </div>
 
-      <!-- Fotografía temporal (placeholder): sustituir por una foto real manteniendo la proporción 4:5 -->
-      <figure class="photo hero__media reveal">
+      <!-- Fotografía temporal (placeholder): sustituir por una foto real, vertical (4:5 o similar).
+           Se recorta con object-fit: cover entre ~2:3 y 1:1 según el tamaño de pantalla, así que el motivo debe estar centrado.
+           Sin clase .reveal a propósito: es la imagen LCP y no debe esperar a JavaScript. -->
+      <figure class="photo hero__media">
         <img src="assets/img/photos/portada.webp" width="1200" height="1500" alt="" data-placeholder fetchpriority="high" decoding="async">
       </figure>
     </div>
@@ -212,7 +216,8 @@
         <p class="label">Estudio</p>
         <div class="studio__copy">
           <h2 class="statement statement--sm" id="estudio-title">Un estudio de uñas y estética en Triana, Sevilla.</h2>
-          <p>Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial. Eliges el servicio y reservas tu hora online.</p>
+          <!-- Pendiente de contenido real del cliente (quién, cómo, dónde). No inventar: sustituir este texto cuando exista. -->
+          <p>Eliges el servicio y reservas tu cita online.</p>
           <a class="link" href="#reservar" data-book>Reservar cita</a>
         </div>
       </div>
@@ -222,7 +227,7 @@
   <!-- ============ Galería ============ -->
   <section class="gallery" id="galeria" aria-labelledby="galeria-title">
     <div class="wrap">
-      <p class="label reveal"><span id="galeria-title">Galería</span></p>
+      <h2 class="label reveal" id="galeria-title">Galería</h2>
       <!-- Fotografías temporales (placeholders): sustituir por fotos reales, proporciones 4:5, 1:1 y 4:3 -->
       <div class="gallery__grid">
         <figure class="photo gallery__a reveal"><img src="assets/img/photos/galeria-1.webp" width="1000" height="1250" alt="" data-placeholder loading="lazy" decoding="async"></figure>
@@ -255,6 +260,7 @@
           <button type="button" class="chip" aria-pressed="false" data-cal-link="jmwebstudio/limpieza-facial" data-service="Limpieza facial">Facial</button>
         </div>
 
+        <p class="sr-only" id="embed-status" role="status"></p>
         <div class="embed" id="cal-embed-wrap" aria-live="polite">
           <!-- Hasta que haya consentimiento no se carga nada de Cal.com -->
           <div class="embed__gate" id="cal-gate">
@@ -276,17 +282,6 @@
   <!-- ============ Ubicación y contacto ============ -->
   <section class="visit" id="contacto" aria-labelledby="contacto-title">
     <div class="wrap visit__grid">
-      <div class="visit__map reveal">
-        <div class="map" id="map-wrap" data-src="https://www.google.com/maps?q=Triana%2C%20Sevilla&amp;hl=es&amp;z=15&amp;output=embed" data-title="Mapa del barrio de Triana, Sevilla">
-          <div class="embed__gate" id="map-gate">
-            <h3>Mapa de Triana</h3>
-            <p>Para mostrar el mapa se carga Google Maps, un servicio externo que puede usar cookies.</p>
-            <button type="button" class="btn" id="map-load">Aceptar y mostrar el mapa</button>
-            <a class="embed__alt link" href="https://www.google.com/maps/search/?api=1&amp;query=Triana%2C%20Sevilla" target="_blank" rel="noopener">o ábrelo en Google Maps</a>
-          </div>
-        </div>
-      </div>
-
       <div class="visit__info reveal">
         <h2 class="display visit__title" id="contacto-title">Visítanos<br>en Triana</h2>
 
@@ -302,6 +297,18 @@
           <a class="btn btn--line" href="tel:+34624293129">Llamar</a>
         </div>
         <a class="link visit__route" href="https://www.google.com/maps/search/?api=1&amp;query=Triana%2C%20Sevilla" target="_blank" rel="noopener">Cómo llegar</a>
+      </div>
+
+      <div class="visit__map reveal">
+        <p class="sr-only" id="map-status" role="status"></p>
+        <div class="map" id="map-wrap" data-src="https://www.google.com/maps?q=Triana%2C%20Sevilla&amp;hl=es&amp;z=15&amp;output=embed" data-title="Mapa del barrio de Triana, Sevilla">
+          <div class="embed__gate" id="map-gate">
+            <h3>Mapa de Triana</h3>
+            <p>Para mostrar el mapa se carga Google Maps, un servicio externo que puede usar cookies.</p>
+            <button type="button" class="btn" id="map-load">Aceptar y mostrar el mapa</button>
+            <a class="embed__alt link" href="https://www.google.com/maps/search/?api=1&amp;query=Triana%2C%20Sevilla" target="_blank" rel="noopener">o ábrelo en Google Maps</a>
+          </div>
+        </div>
       </div>
     </div>
   </section>

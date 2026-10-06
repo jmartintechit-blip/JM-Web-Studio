@@ -454,3 +454,192 @@ describe('teclado, movimiento reducido y rendimiento', () => {
     console.log(`   (aviso) ${imgs.filter((i) => i.placeholder).length} de ${imgs.length} fotografías son placeholders pendientes de sustituir por fotos reales`);
   });
 });
+
+describe('regresiones de la revisión de diseño', () => {
+  /** Contexto con el doble local de Cal.com y de Google Maps, sin más salida a internet. */
+  async function openWithStubs(options = {}) {
+    const context = await newContext(browser, options);
+    const tab = await context.newPage();
+    const log = track(tab, site.base);
+    await tab.route(`${business.cal.origin}/embed/embed.js`, (r) => r.fulfill({ contentType: 'application/javascript', body: CAL_STUB }));
+    await tab.route((u) => u.href.startsWith('https://www.google.com/maps'), (r) => r.fulfill({ contentType: 'text/html', body: '<html><body>mapa</body></html>' }));
+    await tab.route((u) => !u.href.startsWith(site.base) && !u.href.startsWith(business.cal.origin) && !u.href.startsWith('https://www.google.com/maps'), (r) => r.abort());
+    await tab.goto(url('index.html'));
+    await tab.waitForTimeout(300);
+    return { tab, log, context };
+  }
+
+  for (const [width, height] of [[1280, 720], [1366, 768], [1536, 864]]) {
+    it(`portátil ${width}x${height}: el botón principal de la portada queda dentro del pliegue (con el aviso demo visible)`, async () => {
+      const { tab, close } = await open('index.html', { width, height, consent: REJECTED });
+      const bottom = await tab.$eval('#hero-cta', (b) => Math.round(b.getBoundingClientRect().bottom));
+      await close();
+      assert.ok(bottom <= height, `el botón termina en y=${bottom} con pliegue en ${height}`);
+    });
+  }
+
+  it('el banner de cookies de escritorio no tapa el botón principal ni el texto de la portada', async () => {
+    const { tab, close } = await open('index.html', { width: 1366, height: 768 });
+    const overlap = await tab.evaluate(() => {
+      const b = document.querySelector('#cookie-banner').getBoundingClientRect();
+      return ['#hero-cta', '.hero__lead', '.hero__title'].filter((sel) => {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        return r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top;
+      });
+    });
+    await close();
+    assert.deepEqual(overlap, []);
+  });
+
+  for (const width of [768, 820, 900]) {
+    it(`servicios a ${width}px: el precio y «Reservar» no se tocan`, async () => {
+      const { tab, close } = await open('index.html', { width, height: 1024, consent: REJECTED });
+      const gaps = await tab.$$eval('.svc', (rows) => rows.map((row) => {
+        const price = row.querySelector('.svc__price').getBoundingClientRect();
+        const cta = row.querySelector('.svc__cta span').getBoundingClientRect();
+        return Math.round(cta.left - price.right);
+      }));
+      await close();
+      assert.ok(gaps.every((g) => g >= 16), `huecos precio→Reservar: ${gaps}`);
+    });
+  }
+
+  it('la portada y el contenido siguen visibles si main.js no se carga', async () => {
+    const context = await newContext(browser, { consent: REJECTED });
+    const tab = await context.newPage();
+    await blockExternal(tab, site.base);
+    await tab.route('**/assets/js/main.js*', (r) => r.abort());
+    await tab.goto(url('index.html'));
+    await tab.waitForTimeout(1200);
+    const early = await tab.evaluate(() => ({
+      title: getComputedStyle(document.querySelector('.hero__title')).opacity,
+      photo: getComputedStyle(document.querySelector('.hero__media')).opacity,
+    }));
+    assert.equal(early.photo, '1', 'la foto de la portada nunca nace oculta');
+    assert.equal(early.title, '1');
+    await tab.waitForTimeout(5700);
+    const late = await tab.$$eval('.reveal', (els) => els.filter((e) => getComputedStyle(e).opacity !== '1').length);
+    await context.close();
+    assert.equal(late, 0, 'a los 6 s la red de seguridad CSS muestra todo el contenido');
+  });
+
+  it('el botón del calendario monta Cal.com una sola vez, avisa del estado y mueve el foco al selector', async () => {
+    const { tab, log, context } = await openWithStubs();
+    await tab.evaluate(() => document.querySelector('#reservar').scrollIntoView());
+    await tab.click('#cal-load');
+    await tab.waitForSelector('#cal-inline iframe', { timeout: 6000 });
+    await tab.waitForTimeout(500);
+    const calls = await tab.evaluate(() => window.__calCalls.filter((c) => c[0] === 'inline').length);
+    const focus = await tab.evaluate(() => document.activeElement.className);
+    const status = await tab.textContent('#embed-status');
+    await context.close();
+    assert.equal(calls, 1, 'una única llamada inline a Cal.com');
+    assert.match(focus, /chip/);
+    assert.match(status, /Cargando el calendario/);
+    assert.deepEqual(log.console, []);
+  });
+
+  for (const [width, height, touch] of [[390, 844, true], [1440, 900, false]]) {
+    it(`«Reservar» de un servicio a ${width}px deja visibles los selectores de servicio bajo la cabecera y con el foco`, async () => {
+      const { tab, close } = await open('index.html', { width, height, consent: REJECTED, touch });
+      await tab.click('.svc__cta[data-service="Uñas de gel"]');
+      await tab.waitForTimeout(1500);
+      const info = await tab.evaluate(() => {
+        const chips = [...document.querySelectorAll('#service-chips .chip')].map((c) => c.getBoundingClientRect());
+        return {
+          headerBottom: document.querySelector('#header').getBoundingClientRect().bottom,
+          chipsTop: Math.min(...chips.map((r) => r.top)),
+          chipsBottom: Math.max(...chips.map((r) => r.bottom)),
+          focus: document.activeElement.dataset.service,
+          vh: innerHeight,
+        };
+      });
+      await close();
+      assert.ok(info.chipsTop >= info.headerBottom - 1, `selectores bajo la cabecera: ${JSON.stringify(info)}`);
+      assert.ok(info.chipsBottom <= info.vh, JSON.stringify(info));
+      assert.equal(info.focus, 'Uñas de gel');
+    });
+  }
+
+  it('en móvil, «Reservar cita» de la cabecera cierra el menú abierto y lleva al calendario', async () => {
+    const { tab, close } = await open('index.html', { width: 390, height: 844, consent: REJECTED, touch: true });
+    await tab.tap('#burger');
+    await tab.waitForTimeout(450);
+    assert.ok(await tab.isVisible('#nav'));
+    await tab.tap('.header__cta');
+    await tab.waitForTimeout(1200);
+    assert.equal(await tab.getAttribute('#burger', 'aria-expanded'), 'false');
+    assert.ok(!(await tab.isVisible('#nav')));
+    const top = await tab.evaluate(() => Math.round(document.querySelector('#cal-panel').getBoundingClientRect().top));
+    await close();
+    assert.ok(top >= 0 && top < 300, `el selector de servicio queda a la vista (top=${top})`);
+  });
+
+  it('con el menú abierto la primera entrada queda bajo la cabecera, también con el aviso demo visible', async () => {
+    const { tab, close } = await open('index.html', { width: 390, height: 844, consent: REJECTED, touch: true });
+    await tab.tap('#burger');
+    await tab.waitForTimeout(450);
+    const gap = await tab.evaluate(() => Math.round(document.querySelector('.nav__list a').getBoundingClientRect().top - document.querySelector('#header').getBoundingClientRect().bottom));
+    await close();
+    assert.ok(gap >= 4, `separación entre la cabecera y la primera entrada: ${gap}px`);
+  });
+
+  it('la barra móvil oculta no es enfocable ni se lee (visibility: hidden)', async () => {
+    const { tab, close } = await open('index.html', { width: 390, height: 844, consent: REJECTED, touch: true });
+    const visibility = await tab.$eval('#mobile-bar', (b) => getComputedStyle(b).visibility);
+    await close();
+    assert.equal(visibility, 'hidden');
+  });
+
+  it('retirar el consentimiento descarga Cal.com y el mapa', async () => {
+    const { tab, context } = await openWithStubs();
+    await tab.click('[data-consent="accept"]');
+    await tab.evaluate(() => document.querySelector('#contacto').scrollIntoView());
+    await tab.waitForSelector('#map-wrap iframe', { timeout: 6000 });
+    await tab.click('#cookie-reopen');
+    assert.equal(await tab.getAttribute('[data-consent="config"]', 'aria-expanded'), 'true');
+    await tab.uncheck('#consent-third');
+    await Promise.all([tab.waitForEvent('load'), tab.click('[data-consent="save"]')]);
+    await tab.waitForTimeout(600);
+    const state = await tab.evaluate(() => ({ iframes: document.querySelectorAll('#map-wrap iframe, #cal-inline iframe').length, gate: !document.querySelector('#map-gate').hidden }));
+    await context.close();
+    assert.equal(state.iframes, 0);
+    assert.ok(state.gate, 'el recuadro de consentimiento del mapa vuelve a mostrarse');
+  });
+
+  it('el orden del DOM en «Visítanos» sigue el orden visual: título y contacto antes que el mapa', async () => {
+    const { tab, close } = await open('index.html', { width: 390, height: 844, consent: REJECTED, touch: true });
+    const ok = await tab.evaluate(() => {
+      const before = (a, b) => !!(document.querySelector(a).compareDocumentPosition(document.querySelector(b)) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return before('#contacto-title', '#map-gate h3') && before('.visit__phone', '#map-load');
+    });
+    await close();
+    assert.ok(ok);
+  });
+
+  it('el banner de cookies cabe en pantallas bajas (móvil apaisado) incluso con la configuración abierta', async () => {
+    const { tab, close } = await open('index.html', { width: 667, height: 375, touch: true });
+    await tab.click('[data-consent="config"]');
+    const box = await tab.$eval('#cookie-banner', (b) => { const r = b.getBoundingClientRect(); return { top: r.top, bottom: r.bottom, overflow: getComputedStyle(b).overflowY }; });
+    await close();
+    assert.ok(box.top >= 0 && box.bottom <= 375, JSON.stringify(box));
+    assert.equal(box.overflow, 'auto');
+  });
+
+  it('todas las reglas :hover están dentro de @media (hover: hover), para que no se queden "pegadas" en táctil', async () => {
+    const { tab, close } = await open('index.html', { consent: REJECTED });
+    const offenders = await tab.evaluate(() => {
+      const bad = [];
+      const walk = (rules, guarded) => {
+        for (const rule of rules) {
+          if (rule.cssRules && rule.conditionText !== undefined) walk(rule.cssRules, guarded || /hover:\s*hover/.test(rule.conditionText));
+          else if (rule.selectorText && /:hover/.test(rule.selectorText) && !guarded) bad.push(rule.selectorText);
+        }
+      };
+      for (const sheet of document.styleSheets) { try { walk(sheet.cssRules, false); } catch { /* hoja externa */ } }
+      return bad;
+    });
+    await close();
+    assert.deepEqual(offenders, []);
+  });
+});

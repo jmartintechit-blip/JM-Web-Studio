@@ -48,8 +48,11 @@ describe('build en modo demostración', () => {
 describe('build indexable', () => {
   const dir = compile({ indexable: true });
 
-  it('quita noindex, permite el rastreo y genera sitemap.xml', () => {
-    for (const page of PAGES) assert.ok(!read(dir, page).includes('noindex'), `noindex en ${page}`);
+  it('quita noindex de las páginas de contenido (la 404 lo conserva), permite el rastreo y genera sitemap.xml', () => {
+    for (const page of PAGES) {
+      if (page === '404.html') assert.match(read(dir, page), /<meta name="robots" content="noindex, nofollow">/, 'la 404 conserva noindex');
+      else assert.ok(!read(dir, page).includes('noindex'), `noindex en ${page}`);
+    }
     assert.match(read(dir, 'robots.txt'), /Allow: \/\nSitemap: https:\/\/azahar\.test\/sitemap\.xml/);
     const sitemap = read(dir, 'sitemap.xml');
     assert.ok(sitemap.includes(`<loc>${SITE_URL}/</loc>`));

@@ -48,7 +48,8 @@ export function build({ siteUrl, indexable = false, outDir = DIST, log = () => {
       .replaceAll('%SITE_URL%', base)
       .replace('assets/css/styles.css"', `assets/css/styles.css?v=${cssHash}"`)
       .replace('assets/js/main.js"', `assets/js/main.js?v=${jsHash}"`);
-    if (indexable) html = html.replace(NOINDEX_TAG, '');
+    // La 404 conserva siempre noindex: es una página de error, no contenido indexable.
+    if (indexable && name !== '404.html') html = html.replace(NOINDEX_TAG, '');
     writeFileSync(file, html);
   }
 
