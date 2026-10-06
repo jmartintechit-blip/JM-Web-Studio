@@ -1,0 +1,15 @@
+# Dependencias y salida de build
+node_modules/
+dist/
+
+# Variables de entorno: solo se versiona .env.example
+.env
+.env.*
+!.env.example
+
+# Sistema y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log

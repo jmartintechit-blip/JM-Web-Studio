@@ -1,8 +1,16 @@
-# Configuración de Netlify: web estática, sin paso de compilación.
+# Netlify: compila src/ a dist/ con scripts/build.mjs (sin dependencias).
+# SITE_URL no hace falta: Netlify aporta la variable URL con la dirección pública del sitio.
 [build]
-  publish = "."
+  command = "node scripts/build.mjs"
+  publish = "dist"
 
-# Cabeceras de seguridad para todo el sitio
+[build.environment]
+  NODE_VERSION = "22"
+  NPM_FLAGS = "--omit=dev"   # las herramientas de test (Playwright, html-validate) no se instalan en el despliegue
+  # INDEXABLE = "true"       # activar al publicar la web real de un cliente (quita noindex y genera sitemap.xml)
+
+# Cabeceras de seguridad. No se define Content-Security-Policy porque el calendario de Cal.com
+# no se ha podido probar contra una política concreta desde el entorno de desarrollo.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -11,7 +19,17 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
 
-# Tipografías e imágenes: caché larga (los nombres de archivo no cambian de contenido)
+# CSS y JS llevan ?v=<hash> en la URL, así que pueden cachearse de forma permanente.
+[[headers]]
+  for = "/assets/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
   for = "/assets/fonts/*"
   [headers.values]
@@ -21,6 +39,3 @@
   for = "/assets/img/*"
   [headers.values]
     Cache-Control = "public, max-age=2592000"
-
-# HTML, CSS y JS se revalidan en cada visita (valor por defecto de Netlify);
-# además cada enlace lleva ?v=AAAAMMDD para forzar la actualización tras un cambio.

@@ -8,7 +8,6 @@
   'use strict';
 
   var doc = document;
-  var root = doc.documentElement;
   var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
   function $(sel, ctx) { return (ctx || doc).querySelector(sel); }
@@ -29,25 +28,13 @@
   };
 
   /* ---------------------------------------------------------------------
-     1. Cabecera: sombra al hacer scroll, enlace activo y menú móvil
+     1. Cabecera: enlace activo y menú móvil
      --------------------------------------------------------------------- */
   function initHeader() {
     var header = $('#header');
     var burger = $('#burger');
     var nav = $('#nav');
     if (!header) return;
-
-    var ticking = false;
-    function onScroll() {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(function () {
-        header.classList.toggle('is-scrolled', window.scrollY > 8);
-        ticking = false;
-      });
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
 
     // Enlace de navegación activo según la sección visible
     var links = $$('.nav__list a');
@@ -68,11 +55,12 @@
     // Menú móvil
     if (!burger || !nav) return;
     var icon = $('use', burger);
+    var sprite = icon ? icon.getAttribute('href').split('#')[0] : '';   // el sprite es un archivo externo
     function setMenu(open) {
       nav.classList.toggle('is-open', open);
       burger.setAttribute('aria-expanded', open ? 'true' : 'false');
       burger.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
-      if (icon) icon.setAttribute('href', open ? '#i-close' : '#i-menu');
+      if (icon) icon.setAttribute('href', sprite + (open ? '#i-close' : '#i-menu'));
       doc.body.style.overflow = open ? 'hidden' : '';
     }
     burger.addEventListener('click', function () { setMenu(!nav.classList.contains('is-open')); });
@@ -112,9 +100,8 @@
     var items = $$('.reveal');
     if (!items.length) return;
 
-    // Escalonado suave en el hero y en la galería
+    // Escalonado suave en el texto del hero
     $$('.hero__copy .reveal').forEach(function (el, i) { el.style.setProperty('--d', (i * 0.09) + 's'); });
-    $$('.gallery .reveal').forEach(function (el, i) { el.style.setProperty('--d', ((i % 4) * 0.07) + 's'); });
 
     function show(el) { el.classList.add('is-in'); }
     if (!('IntersectionObserver' in window)) { items.forEach(show); return; }
@@ -226,7 +213,7 @@
   var calSection, calOrigin, calBase;
   var calReady = false;
   var calSeq = 0;
-  var currentLink = 'jmwebstudio';
+  var currentLink = '';   // se toma del chip activo en initBooking
 
   function bootCal() {
     if (calReady) return;
@@ -260,7 +247,7 @@
     window.Cal('init', CAL_NS, { origin: calOrigin });
     window.Cal.ns[CAL_NS]('ui', {
       theme: 'light',
-      styles: { branding: { brandColor: '#A24630' } },
+      styles: { branding: { brandColor: '#1B3590' } },
       hideEventTypeDetails: false,
       layout: 'month_view'
     });
@@ -314,7 +301,7 @@
     }, 12000);
   }
 
-  function selectService(link, label) {
+  function selectService(link) {
     currentLink = link;
     $$('#service-chips .chip').forEach(function (chip) {
       var active = chip.getAttribute('data-cal-link') === link;
@@ -343,11 +330,13 @@
     if (!calSection) return;
     calOrigin = calSection.getAttribute('data-cal-origin') || 'https://app.cal.com';
     calBase = calSection.getAttribute('data-cal-base') || 'https://cal.com';
+    var initial = $('#service-chips .chip.is-active');
+    currentLink = initial ? initial.getAttribute('data-cal-link') : '';
 
     // Chips del calendario
     $$('#service-chips .chip').forEach(function (chip) {
       chip.addEventListener('click', function () {
-        selectService(chip.getAttribute('data-cal-link'), chip.getAttribute('data-service'));
+        selectService(chip.getAttribute('data-cal-link'));
       });
     });
 
@@ -365,7 +354,7 @@
         e.preventDefault();
         var link = a.getAttribute('data-cal-link');
         var target = $('#cal-panel') || calSection;
-        if (link) { selectService(link, a.getAttribute('data-service')); }
+        if (link) { selectService(link); }
         else { target = calSection; }
         target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
         if (link) {
@@ -390,8 +379,8 @@
     var gate = $('#map-gate');
     if (!wrap || $('iframe', wrap)) return;
     var f = doc.createElement('iframe');
-    f.src = 'https://www.google.com/maps?q=Triana%2C%20Sevilla&hl=es&z=15&output=embed';
-    f.title = 'Mapa del barrio de Triana, Sevilla';
+    f.src = wrap.getAttribute('data-src');
+    f.title = wrap.getAttribute('data-title') || 'Mapa de ubicación';
     f.loading = 'lazy';
     f.referrerPolicy = 'no-referrer-when-downgrade';
     f.setAttribute('allowfullscreen', '');
@@ -418,16 +407,23 @@
   }
 
   /* ---------------------------------------------------------------------
-     8. Barra fija móvil: se oculta mientras se ve el calendario
+     8. Barra fija móvil: solo aparece cuando el botón principal del hero
+        ha salido de pantalla y se oculta mientras se ve el calendario
      --------------------------------------------------------------------- */
   function initMobileBar() {
     var bar = $('#mobile-bar');
-    var target = $('#reservar');
-    if (!bar || !target || !('IntersectionObserver' in window)) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) { bar.classList.toggle('is-hidden', entry.isIntersecting); });
-    }, { threshold: 0.25 });
-    io.observe(target);
+    var heroCta = $('#hero-cta');
+    var booking = $('#reservar');
+    if (!bar || !heroCta || !booking || !('IntersectionObserver' in window)) { if (bar) bar.classList.remove('is-hidden'); return; }
+    var heroVisible = true;
+    var bookingVisible = false;
+    function update() { bar.classList.toggle('is-hidden', heroVisible || bookingVisible); }
+    new IntersectionObserver(function (entries) {
+      heroVisible = entries[0].isIntersecting; update();
+    }).observe(heroCta);
+    new IntersectionObserver(function (entries) {
+      bookingVisible = entries[0].isIntersecting; update();
+    }, { threshold: 0.25 }).observe(booking);
   }
 
   /* ---------------------------------------------------------------------
@@ -436,6 +432,25 @@
   function initYear() {
     var y = $('#year');
     if (y) y.textContent = String(new Date().getFullYear());
+  }
+
+  /* Indicador "abierto ahora": lee días y horas de los data-* de #open-now (hora de Madrid) */
+  function initOpenNow() {
+    var el = $('#open-now');
+    if (!el || !window.Intl || !Intl.DateTimeFormat) return;
+    var toMinutes = function (hhmm) { var t = hhmm.split(':'); return parseInt(t[0], 10) * 60 + parseInt(t[1], 10); };
+    var days = el.getAttribute('data-days').split(',');
+    var from = toMinutes(el.getAttribute('data-open'));
+    var to = toMinutes(el.getAttribute('data-close'));
+    var parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Madrid', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).formatToParts(new Date());
+    var get = function (type) { var p = parts.filter(function (x) { return x.type === type; })[0]; return p ? p.value : ''; };
+    var now = parseInt(get('hour'), 10) * 60 + parseInt(get('minute'), 10);
+    var isOpen = days.indexOf(get('weekday')) !== -1 && now >= from && now < to;
+    el.textContent = isOpen ? 'Abierto ahora, hasta las ' + el.getAttribute('data-close') : 'Cerrado ahora';
+    el.classList.toggle('is-open', isOpen);
+    el.hidden = false;
   }
 
   /* ---------------------------------------------------------------------
@@ -451,6 +466,7 @@
     safe(initMap, 'map');
     safe(initMobileBar, 'mobile-bar');
     safe(initYear, 'year');
+    safe(initOpenNow, 'open-now');
   }
 
   if (doc.readyState === 'loading') doc.addEventListener('DOMContentLoaded', init);
