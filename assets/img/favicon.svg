@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Azahar Nail Studio">
+  <rect width="64" height="64" rx="15" fill="#F3DDD3"/>
+  <g transform="translate(32 32)" fill="#FFFDF8" stroke="#D9B9A8" stroke-width="1.2">
+    <ellipse cx="0" cy="-12.5" rx="8" ry="12.5"/>
+    <ellipse cx="0" cy="-12.5" rx="8" ry="12.5" transform="rotate(72)"/>
+    <ellipse cx="0" cy="-12.5" rx="8" ry="12.5" transform="rotate(144)"/>
+    <ellipse cx="0" cy="-12.5" rx="8" ry="12.5" transform="rotate(216)"/>
+    <ellipse cx="0" cy="-12.5" rx="8" ry="12.5" transform="rotate(288)"/>
+    <circle r="5.4" fill="#E9B84C" stroke="none"/>
+  </g>
+</svg>

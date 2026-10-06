@@ -1,0 +1,7 @@
+# Web de demostración: no indexar.
+# Al publicar la versión real de un cliente, sustituir por:
+#   User-agent: *
+#   Allow: /
+#   Sitemap: https://TU-DOMINIO/sitemap.xml
+User-agent: *
+Disallow: /
