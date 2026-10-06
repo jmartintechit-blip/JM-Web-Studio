@@ -1,0 +1,9 @@
+<dl class="legal__data">
+  <div><dt>Titular / razón social</dt><dd>{{{legal.titular}}}</dd></div>
+  <div><dt>NIF / CIF</dt><dd>{{{legal.nif}}}</dd></div>
+  <div><dt>Domicilio</dt><dd>{{{legal.domicilio}}}</dd></div>
+  {{#if contacto.tieneEmail}}
+  <div><dt>Correo electrónico</dt><dd><a href="mailto:{{contacto.email}}">{{contacto.email}}</a></dd></div>
+  {{/if}}
+  <div><dt>Teléfono / WhatsApp</dt><dd><a href="{{contacto.telHref}}">{{contacto.telVisible}}</a></dd></div>
+</dl>

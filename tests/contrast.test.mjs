@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
+import { config } from './helpers.mjs';
 
-const css = readFileSync(new URL('../src/assets/css/styles.css', import.meta.url), 'utf8');
+/** Nombre de la variable CSS → clave de `colores` en site.config.mjs (la paleta se define allí). */
+const KEYS = { ivory: 'marfil', paper: 'papel', sand: 'arena', 'sand-2': 'arena2', ink: 'tinta', 'ink-2': 'tinta2', mute: 'gris', night: 'noche', 'night-text': 'nocheTexto', 'night-mute': 'nocheGris', bronze: 'bronce', 'bronze-lt': 'bronceClaro' };
 const token = (name) => {
-  const match = css.match(new RegExp(`--${name}:\\s*(#[0-9A-Fa-f]{6})`));
-  assert.ok(match, `token --${name} no encontrado`);
-  return match[1];
+  const value = config.colores[KEYS[name]];
+  assert.match(value || '', /^#[0-9A-Fa-f]{6}$/, `color ${name} (${KEYS[name]}) no definido en site.config.mjs`);
+  return value;
 };
 const luminance = (hex) => {
   const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)

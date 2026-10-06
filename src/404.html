@@ -1,20 +1,18 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Página no encontrada | Azahar Nail Studio</title>
-  <meta name="description" content="La página que buscas no existe. Vuelve al inicio de Azahar Nail Studio para consultar los servicios y reservar tu cita.">
-  <meta name="theme-color" content="#F5F1E9">
+{{> head-inicio}}
+{{#if produccion}}
   <meta name="robots" content="noindex, nofollow">
+{{/if}}
+  <title>Página no encontrada | {{negocio.nombre}}</title>
+  <meta name="description" content="La página que buscas no existe. Vuelve al inicio de {{negocio.nombre}} para consultar los servicios y reservar tu cita.">
   <base href="/">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="stylesheet" href="assets/css/styles.css">
+{{> head-fin}}
 </head>
 <body>
 <main class="notfound">
-  <a class="brand" href="index.html" aria-label="Azahar Nail Studio, volver al inicio"><span class="brand__name">Azahar</span></a>
+  <a class="brand" href="index.html" aria-label="{{negocio.nombre}}, volver al inicio"><span class="brand__name">{{negocio.marca}}</span></a>
   <h1 class="legal__title">Esta página no existe</h1>
   <p class="section-note">Puede que el enlace esté roto o que la página se haya movido.</p>
   <a class="btn" href="index.html">Ir al inicio</a>

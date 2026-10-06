@@ -1,52 +1,26 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Política de privacidad | Azahar Nail Studio</title>
-  <meta name="description" content="Política de privacidad de Azahar Nail Studio: responsable, datos que se tratan, finalidades, proveedores, plazos de conservación y cómo ejercer tus derechos.">
-  <meta name="theme-color" content="#F5F1E9">
-  <link rel="canonical" href="%SITE_URL%/politica-privacidad.html">
-  <!-- scripts/build.mjs elimina esta etiqueta cuando INDEXABLE=true -->
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="preload" href="assets/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/hanken-grotesk.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/styles.css">
+{{> head-inicio}}
+  <title>Política de privacidad | {{negocio.nombre}}</title>
+  <meta name="description" content="Política de privacidad de {{negocio.nombre}}: qué datos se tratan al reservar o escribirnos, para qué, con qué base legal y cómo ejercer tus derechos.">
+  <link rel="canonical" href="{{siteUrl}}/politica-privacidad.html">
+{{> head-fin}}
 </head>
 <body>
-<a class="skip-link" href="#contenido">Saltar al contenido</a>
-
-<header class="header">
-  <div class="wrap header__inner">
-    <a class="brand" href="index.html" aria-label="Azahar Nail Studio, volver al inicio">
-      <span class="brand__name">Azahar</span><span class="brand__tag">Nail Studio</span>
-    </a>
-    <a class="btn btn--line btn--sm" href="index.html">Volver a la web</a>
-  </div>
-</header>
+{{> cabecera-legal}}
 
 <main id="contenido" class="legal">
   <div class="wrap legal__wrap">
     <h1 class="legal__title">Política de privacidad</h1>
-    <p class="legal__updated">Última actualización: 6 de octubre de 2026</p>
+    <p class="legal__updated">Última actualización: {{legal.actualizado}}</p>
 
-    <aside class="legal__note" role="note">
-      <strong>Texto orientativo de una web de demostración.</strong> Los datos del titular del negocio todavía no se han facilitado y aparecen marcados como <span class="pending">Pendiente</span>. Antes de publicar la web real hay que completarlos y que un profesional revise el contenido.
-    </aside>
+    {{> nota-legal}}
 
     <section>
       <h2>1. Responsable del tratamiento</h2>
       <p>La persona o entidad responsable del tratamiento de tus datos personales es:</p>
-      <dl class="legal__data">
-      <div><dt>Titular / razón social</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>NIF / CIF</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>Domicilio</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>Correo electrónico</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>Teléfono / WhatsApp</dt><dd><a href="tel:+34624293129">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></dd></div>
-    </dl>
+      {{> datos-titular}}
     </section>
 
     <section>
@@ -91,7 +65,7 @@
 
     <section>
       <h2>6. Tus derechos</h2>
-      <p>Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad, y retirar tu consentimiento en cualquier momento, escribiendo al correo del titular (<span class="pending">Pendiente</span>) o por WhatsApp al <a href="tel:+34624293129">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a>. Si crees que tus datos no se han tratado correctamente, puedes reclamar ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>).</p>
+      <p>Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad, y retirar tu consentimiento en cualquier momento, escribiendo {{#if contacto.tieneEmail}}a <a href="mailto:{{contacto.email}}">{{contacto.email}}</a> o {{/if}}por WhatsApp o llamando al <a href="{{contacto.telHref}}">{{contacto.telVisible}}</a>. Si crees que tus datos no se han tratado correctamente, puedes reclamar ante la Agencia Española de Protección de Datos (<a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>).</p>
     </section>
 
     <section>
@@ -106,16 +80,6 @@
   </div>
 </main>
 
-<footer class="footer footer--slim">
-  <div class="wrap footer__bottom">
-    <p>© <span id="year">2026</span> Azahar Nail Studio</p>
-    <nav aria-label="Información legal" class="footer__legal">
-      <a href="aviso-legal.html">Aviso legal</a>
-      <a href="politica-privacidad.html">Privacidad</a>
-      <a href="politica-cookies.html">Cookies</a>
-    </nav>
-  </div>
-</footer>
-<script src="assets/js/main.js" defer></script>
+{{> pie-legal}}
 </body>
 </html>

@@ -1,11 +1,27 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
 import { build } from '../scripts/build.mjs';
+import { loadConfig } from '../scripts/config.mjs';
 import { serve } from '../scripts/serve.mjs';
 
-export const business = JSON.parse(readFileSync(new URL('./business.json', import.meta.url), 'utf8'));
+/** Configuración real de la web (site.config.mjs): única fuente de verdad de los datos del negocio. */
+export const config = await loadConfig();
+
+const duration = (min) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);   // cálculo independiente del build
+const firstOpen = config.horario.find((h) => !h.cerrado);
+/** Datos del negocio con la forma que usan los tests, leídos de la configuración. */
+export const business = {
+  name: config.negocio.nombre,
+  locality: config.negocio.zona,
+  phone: config.contacto.telefono,
+  phoneDisplay: config.contacto.telefono.replace(/^\+34(\d{3})(\d{2})(\d{2})(\d{2})$/, '+34 $1 $2 $3 $4'),
+  whatsapp: config.contacto.whatsapp,
+  cal: { user: config.reservas.cal.usuario, origin: config.reservas.cal.origen, base: config.reservas.cal.base },
+  hours: { label: firstOpen.etiqueta, open: firstOpen.abre.replace(/^0/, ''), close: firstOpen.cierra.replace(/^0/, '') },
+  services: config.reservas.servicios.map((s) => ({ name: s.nombre, slug: s.slug, duration: duration(s.minutos), minutes: s.minutos, price: s.precio })),
+};
 export const PAGES = ['index.html', 'aviso-legal.html', 'politica-privacidad.html', 'politica-cookies.html', '404.html'];
 /** Móvil pequeño, móvil grande, tablet, portátil y escritorio grande. */
 export const VIEWPORTS = [[360, 740], [390, 844], [768, 1024], [1280, 800], [1920, 1080]];
@@ -13,9 +29,10 @@ export const SITE_URL = 'https://azahar.test';
 export const CONSENT_KEY = 'azahar-consent-v1';
 
 /** Compila a un directorio temporal y lo sirve en un puerto libre. */
-export async function startSite({ indexable = false } = {}) {
+export async function startSite({ modoDemo = true, overrides = {} } = {}) {
   const outDir = mkdtempSync(join(tmpdir(), 'azahar-dist-'));
-  build({ siteUrl: SITE_URL, indexable, outDir });
+  const cfg = { ...config, ...overrides, modoDemo, sitio: { ...config.sitio, url: modoDemo ? '' : SITE_URL } };
+  await build({ config: cfg, siteUrl: SITE_URL, outDir });
   const server = await serve(outDir, 0);
   return {
     outDir,

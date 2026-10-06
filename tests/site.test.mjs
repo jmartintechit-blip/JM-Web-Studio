@@ -3,7 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, before, describe, it } from 'node:test';
 import {
-  CAL_STUB, CONSENT_KEY, PAGES, SITE_URL, VIEWPORTS, blockExternal, business, launch, newContext, slugLink, startSite, track,
+  CAL_STUB, CONSENT_KEY, PAGES, SITE_URL, VIEWPORTS, blockExternal, business, config, launch, newContext, slugLink, startSite, track,
 } from './helpers.mjs';
 
 let site;
@@ -136,24 +136,11 @@ describe('SEO y accesibilidad estática', () => {
     assert.equal(descriptions.size, PAGES.length);
   });
 
-  it('el Schema.org coincide con los datos reales y con el contenido visible', async () => {
+  it('en modo demo no hay datos estructurados de negocio local (los de producción se prueban en modes.test.mjs)', async () => {
     const { tab, close } = await open('index.html', { consent: REJECTED });
-    const schemas = await tab.$$eval('script[type="application/ld+json"]', (nodes) => nodes.map((n) => JSON.parse(n.textContent)));
-    const text = await tab.evaluate(() => document.body.innerText);
+    const schemas = await tab.$$eval('script[type="application/ld+json"]', (nodes) => nodes.length);
     await close();
-    assert.equal(schemas.length, 1, 'solo el Schema del negocio (no hay FAQ en la web)');
-    const salon = schemas[0];
-    assert.equal(salon['@type'], 'BeautySalon');
-    assert.equal(salon.name, business.name);
-    assert.equal(salon.telephone, business.phone);
-    assert.equal(salon.url, `${SITE_URL}/`);
-    assert.equal(salon.openingHoursSpecification[0].opens, '09:00');
-    assert.equal(salon.openingHoursSpecification[0].closes, '17:00');
-    assert.equal(salon.address.addressLocality, 'Sevilla');
-    assert.deepEqual(Object.keys(salon.address).sort(), ['@type', 'addressCountry', 'addressLocality', 'addressRegion'], 'sin campos de dirección inventados');
-    const offers = salon.hasOfferCatalog.itemListElement.map((o) => [o.itemOffered.name, Number(o.price)]);
-    assert.deepEqual(offers, business.services.map((s) => [s.name, s.price]));
-    for (const [name] of offers) assert.ok(text.includes(name), `el Schema menciona "${name}" pero la web no`);
+    assert.equal(schemas, 0);
   });
 });
 
@@ -197,7 +184,7 @@ describe('contenido contra los datos reales del negocio', () => {
   it('los datos legales sin información real están marcados como pendientes (no inventados)', () => {
     for (const file of ['aviso-legal.html', 'politica-privacidad.html']) {
       const html = readFileSync(join(site.outDir, file), 'utf8');
-      assert.ok((html.match(/class="pending"/g) || []).length >= 4, `${file}: faltan marcas de dato pendiente`);
+      assert.ok((html.match(/class="pending"/g) || []).length >= 3, `${file}: faltan marcas de dato pendiente`);
       assert.ok(!/B0{8}|\.example|S\.L\./.test(html), `${file}: contiene datos de ejemplo que parecen reales`);
     }
   });
@@ -254,9 +241,9 @@ describe('consentimiento y reservas', () => {
     await tab.evaluate(() => document.querySelector('#reservar').scrollIntoView());
     await tab.waitForSelector('#cal-inline iframe', { timeout: 6000 });
     let calls = await tab.evaluate(() => window.__calCalls);
-    assert.ok(calls.some((c) => c[0] === 'inline' && c[2] === business.cal.user), JSON.stringify(calls));
+    assert.ok(calls.some((c) => c[0] === 'inline' && c[2] === slugLink(business.services[0].slug)), JSON.stringify(calls));
     const ui = calls.find((c) => c[0] === 'ui');
-    assert.equal(ui[2].styles.branding.brandColor, '#1E1C1A', 'el calendario usa el color de marca');
+    assert.equal(ui[2].styles.branding.brandColor, config.colores.tinta, 'el calendario usa el color de marca de la configuración');
 
     await tab.evaluate(() => document.querySelector('#contacto').scrollIntoView());
     await tab.waitForSelector('#map-wrap iframe', { timeout: 6000 });
@@ -269,8 +256,7 @@ describe('consentimiento y reservas', () => {
       assert.equal(await tab.$eval('#cal-inline iframe', (f) => f.getAttribute('data-cal-link')), slugLink(service.slug), service.name);
       assert.equal(await tab.$eval('#service-chips .chip.is-active', (c) => c.dataset.service), service.name);
     }
-    await tab.click('#service-chips .chip[data-service="Todos los servicios"]');
-    assert.equal(await tab.$eval('#cal-inline iframe', (f) => f.getAttribute('data-cal-link')), business.cal.user);
+    assert.equal(await tab.$$eval('#service-chips .chip', (chips) => chips.length), business.services.length, 'un selector por servicio y ninguno más');
 
     await tab.evaluate(() => window.scrollTo(0, 0));
     await tab.click('.hero__actions [data-book]');
@@ -286,7 +272,7 @@ describe('consentimiento y reservas', () => {
     await tab.evaluate(() => document.querySelector('#reservar').scrollIntoView());
     await tab.waitForTimeout(1500);
     assert.ok(await tab.isVisible('#cal-fallback'));
-    assert.equal(await tab.$eval('#cal-fallback-link', (a) => a.href), `${business.cal.base}/${business.cal.user}`);
+    assert.equal(await tab.$eval('#cal-fallback-link', (a) => a.href), `${business.cal.base}/${slugLink(business.services[0].slug)}`);
     await close();
   });
 

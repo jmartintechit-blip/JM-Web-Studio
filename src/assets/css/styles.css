@@ -23,21 +23,9 @@
 }
 
 :root {
-  /* Color: neutros cálidos y un único acento (bronce) reservado a estados de interacción */
-  --ivory: #F5F1E9;
-  --paper: #FAF8F3;
-  --sand: #EBE5D9;
-  --sand-2: #E1D9CB;
-  --ink: #1E1C1A;
-  --ink-2: #4A4640;
-  --mute: #6B655C;
-  --night: #24221F;
-  --night-text: #D9D3C8;
-  --night-mute: #A29B8E;
-  --bronze: #7A5838;
-  --bronze-lt: #C2A484;
-  --line: rgba(30, 28, 26, .2);
-  --line-soft: rgba(30, 28, 26, .11);
+  /* Color: los define `colores` en site.config.mjs (el build los inyecta en <style id="tema"> de cada página):
+     --ivory --paper --sand --sand-2 --ink --ink-2 --mute --night --night-text --night-mute --bronze --bronze-lt
+     --line --line-soft --night-line. Neutros cálidos y un único acento (bronce) reservado a la interacción. */
 
   /* Tipografía */
   --font-display: "Instrument Serif", "Cormorant Garamond", Georgia, "Times New Roman", serif;
@@ -248,6 +236,17 @@ p, dd { text-wrap: pretty; }
 .gallery__b { grid-column: 8 / 12; grid-row: 1; margin-top: clamp(40px, 7vw, 112px); aspect-ratio: 1 / 1; }
 .gallery__c { grid-column: 7 / 13; grid-row: 2; margin-right: calc(-1 * var(--bleed)); aspect-ratio: 4 / 3; }
 
+/* Reseñas */
+.reviews { padding-top: var(--section); }
+.reviews .statement { margin-top: clamp(20px, 2.4vw, 32px); max-width: 15em; }
+.reviews__list { margin-top: clamp(40px, 5vw, 72px); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--col-gap); border-top: 1px solid var(--line); }
+.review { padding: clamp(24px, 2.6vw, 40px) clamp(0px, 1.5vw, 24px) 0 0; }
+.review blockquote { margin: 0; }
+.review p { font-family: var(--font-display); font-size: clamp(1.5rem, 2vw, 2.1rem); line-height: 1.16; letter-spacing: -.012em; text-wrap: balance; }
+.review figcaption { margin-top: 20px; font-size: .875rem; color: var(--ink-2); }
+.review__name { color: var(--ink); font-weight: 500; }
+.reviews__note { margin-top: clamp(28px, 3vw, 44px); font-size: .75rem; letter-spacing: .02em; color: var(--mute); }
+
 /* Reserva */
 .booking { margin-top: var(--section); padding-block: var(--section); background: var(--sand); }
 .booking__grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--col-gap); align-items: start; }
@@ -285,6 +284,10 @@ p, dd { text-wrap: pretty; }
 .open-now { display: flex; align-items: center; gap: 10px; margin-top: 16px; font-size: .9375rem; font-weight: 500; }
 .open-now::before { content: ""; width: 9px; height: 9px; border: 1px solid var(--mute); border-radius: 50%; }
 .open-now.is-open::before { background: var(--bronze); border-color: var(--bronze); }
+.visit__address { margin-top: clamp(28px, 3vw, 44px); color: var(--ink-2); max-width: 22em; }
+.visit__note { color: var(--mute); font-size: .8125rem; white-space: nowrap; }
+.visit__address + .visit__phone { margin-top: 14px; }
+.visit__email { margin-top: 8px; }
 .visit__phone { margin-top: clamp(32px, 3.6vw, 52px); font-family: var(--font-display); font-size: clamp(2rem, 3vw, 3.2rem); line-height: 1; font-variant-numeric: tabular-nums; }
 .visit__phone a { transition: color .3s; }
 .contact-actions { margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 28rem; }
@@ -299,9 +302,9 @@ p, dd { text-wrap: pretty; }
 .footer__col:nth-child(3) { grid-column: 10 / 13; }
 .footer__h { margin-bottom: 14px; font-family: var(--font-ui); font-size: .8125rem; font-weight: 500; letter-spacing: .02em; color: var(--night-mute); }
 .footer__col a, .footer__col .linklike { display: inline-flex; align-items: center; min-height: 44px; }
-.footer__mark { margin-top: clamp(72px, 9vw, 140px); font-family: var(--font-display); font-size: calc((min(100vw, var(--wrap)) - 2 * var(--gutter)) / 6.4); line-height: .85; letter-spacing: -.03em; color: #EFEAE0; white-space: nowrap; overflow: hidden; padding-top: .06em; }
+.footer__mark { margin-top: clamp(72px, 9vw, 140px); font-family: var(--font-display); font-size: calc((min(100vw, var(--wrap)) - 2 * var(--gutter)) / 6.4); line-height: .85; letter-spacing: -.03em; color: var(--ivory); white-space: nowrap; overflow: hidden; padding-top: .06em; }
 .footer__bottom { position: relative; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 24px; margin-top: clamp(36px, 4vw, 56px); padding-block: 22px; font-size: .8125rem; color: var(--night-mute); }
-.footer__bottom::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: rgba(217, 211, 200, .2); }
+.footer__bottom::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: var(--night-line); }
 .footer__bottom a { position: relative; color: var(--night-text); text-decoration: underline; text-underline-offset: 3px; }
 .footer__bottom a::after { content: ""; position: absolute; inset: -12px -8px; }
 
@@ -425,6 +428,11 @@ p, dd { text-wrap: pretty; }
   .map { aspect-ratio: 4 / 3; }
 }
 
+@media (max-width: 900px) {
+  .reviews__list { grid-template-columns: 1fr; }
+  .review { padding: 28px 0; border-bottom: 1px solid var(--line-soft); }
+}
+
 @media (max-width: 760px) {
   :root { --gutter: 22px; --section: 104px; --header-h: 64px; }
   html { scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
@@ -432,13 +440,13 @@ p, dd { text-wrap: pretty; }
   /* Portada móvil: fotografía a sangre arriba y, debajo, el titular y la acción. Sin velos ni degradados sobre la imagen. */
   .hero { padding: 0; }
   .hero__grid { display: flex; flex-direction: column; padding: 0; }
-  .hero__media { order: -1; position: relative; margin: 0; align-self: stretch; width: 100%; height: clamp(250px, 40svh, 440px); aspect-ratio: auto; }
+  .hero__media { order: -1; position: relative; margin: 0; align-self: stretch; width: 100%; height: clamp(230px, 35svh, 440px); aspect-ratio: auto; }
   .hero__media img { position: absolute; inset: 0; object-position: 50% 24%; }
-  .hero__copy { padding: 28px var(--gutter) 40px; justify-content: flex-start; gap: 24px; }
+  .hero__copy { padding: 24px var(--gutter) 40px; justify-content: flex-start; gap: 24px; }
   .hero__title { font-size: 13.6vw; }
   .hero__foot { gap: 18px; }
   .hero__lead { font-size: 1.0625rem; max-width: 19em; color: var(--ink); }
-  .hero__actions { width: 100%; gap: 20px; }
+  .hero__actions { order: -1; width: 100%; gap: 20px; }   /* el botón va justo bajo el titular: se ve en la primera pantalla */
   .hero__actions .btn { flex: 1 1 100%; min-height: 54px; }
 
   .section-head .section-note { grid-column: 1 / -1; }

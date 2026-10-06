@@ -1,74 +1,33 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Azahar Nail Studio | Uñas y estética en Triana, Sevilla</title>
-  <meta name="description" content="Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial en Triana, Sevilla. Consulta precios y reserva tu cita online.">
-  <meta name="theme-color" content="#F5F1E9">
-  <link rel="canonical" href="%SITE_URL%/">
-  <!-- scripts/build.mjs elimina esta etiqueta cuando INDEXABLE=true -->
-  <meta name="robots" content="noindex, nofollow">
+{{> head-inicio}}
+  <title>{{textos.titulo}}</title>
+  <meta name="description" content="{{textos.descripcion}}">
+  <link rel="canonical" href="{{siteUrl}}/">
 
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_ES">
-  <meta property="og:site_name" content="Azahar Nail Studio">
-  <meta property="og:title" content="Azahar Nail Studio | Uñas y estética en Triana, Sevilla">
-  <meta property="og:description" content="Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial. Reserva tu cita online.">
-  <meta property="og:url" content="%SITE_URL%/">
-  <meta property="og:image" content="%SITE_URL%/assets/img/og-image.jpg">
+  <meta property="og:site_name" content="{{negocio.nombre}}">
+  <meta property="og:title" content="{{meta.ogTitulo}}">
+  <meta property="og:description" content="{{meta.ogDescripcion}}">
+  <meta property="og:url" content="{{siteUrl}}/">
+  <meta property="og:image" content="{{siteUrl}}/assets/img/og-image.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Azahar Nail Studio: uñas y limpieza facial en Triana, Sevilla">
+  <meta property="og:image:alt" content="{{textos.imagenCompartirAlt}}">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-
-  <link rel="preload" href="assets/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/hanken-grotesk.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/img/photos/portada.webp" as="image" type="image/webp" fetchpriority="high">
+  <link rel="preload" href="{{fotos.portada.src}}" as="image" type="{{fotos.portada.tipo}}" fetchpriority="high">
   <script>document.documentElement.className += ' js';</script>
-  <link rel="stylesheet" href="assets/css/styles.css">
+{{> head-fin}}
   <!-- Sin JavaScript el menú móvil no puede abrirse: se muestra como una fila de enlaces bajo la cabecera -->
   <noscript><style>@media (max-width:900px){.burger{display:none}.header__inner--site{grid-template-columns:1fr auto}.header__inner--site .brand{justify-self:start}.nav{position:static;opacity:1;visibility:visible;height:auto;padding:0;background:none;grid-column:1/-1;grid-row:2}.nav__list{flex-direction:row;flex-wrap:wrap;gap:0 22px}.nav__list a{font-family:var(--font-ui);font-size:.9375rem;letter-spacing:0;padding:10px 0;border:0;width:auto}}</style></noscript>
-
+{{#if produccion}}
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BeautySalon",
-    "@id": "%SITE_URL%/#negocio",
-    "name": "Azahar Nail Studio",
-    "url": "%SITE_URL%/",
-    "image": "%SITE_URL%/assets/img/og-image.jpg",
-    "telephone": "+34624293129",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Sevilla",
-      "addressRegion": "Andalucía",
-      "addressCountry": "ES"
-    },
-    "openingHoursSpecification": [{
-      "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-      "opens": "09:00",
-      "closes": "17:00"
-    }],
-    "potentialAction": { "@type": "ReserveAction", "name": "Reservar cita", "target": "https://cal.com/jmwebstudio" },
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Servicios",
-      "itemListElement": [
-        { "@type": "Offer", "price": "18", "priceCurrency": "EUR", "itemOffered": { "@type": "Service", "name": "Manicura semipermanente" } },
-        { "@type": "Offer", "price": "35", "priceCurrency": "EUR", "itemOffered": { "@type": "Service", "name": "Uñas de gel" } },
-        { "@type": "Offer", "price": "28", "priceCurrency": "EUR", "itemOffered": { "@type": "Service", "name": "Relleno de gel" } },
-        { "@type": "Offer", "price": "25", "priceCurrency": "EUR", "itemOffered": { "@type": "Service", "name": "Pedicura semipermanente" } },
-        { "@type": "Offer", "price": "30", "priceCurrency": "EUR", "itemOffered": { "@type": "Service", "name": "Limpieza facial" } }
-      ]
-    }
-  }
+{{{jsonld}}}
   </script>
+{{/if}}
 </head>
 
 <body>
@@ -98,21 +57,23 @@
   </div>
 </section>
 
-<!-- Aviso de demostración, descartable durante la sesión -->
-<section class="demo-bar" id="demo-bar" aria-label="Aviso de web de demostración">
+{{#if modoDemo}}
+<!-- Aviso de demostración, descartable durante la sesión. Con ?para=Nombre se personaliza (main.js, siempre como texto). -->
+<section class="demo-bar" id="demo-bar" aria-label="Aviso de web de demostración" data-wa="{{demo.barraBase}}" data-wa-text="{{demo.whatsappBarra}}" data-msg-para="{{demo.mensajePara}}" data-ask-para="{{demo.preguntaPara}}">
   <p class="demo-bar__text">
-    <span>Esto es una demo de <strong>JM Web Studio</strong>.</span>
-    <a class="demo-bar__link" href="https://wa.me/34624293129?text=Hola%20Juan%2C%20he%20visto%20la%20demo%20de%20Azahar%20Nail%20Studio%20y%20me%20interesa%20una%20web%20para%20mi%20negocio." target="_blank" rel="noopener">¿Quieres una web así? Escríbeme por WhatsApp</a>
+    <span id="demo-msg">{{demo.mensaje}}</span>
+    <a class="demo-bar__link" id="demo-link" href="{{demo.barraHref}}" target="_blank" rel="noopener">{{demo.pregunta}}</a>
   </p>
   <button type="button" class="demo-bar__close" id="demo-close" aria-label="Cerrar aviso de demostración">×</button>
 </section>
+{{/if}}
 
 <header class="header" id="header">
   <div class="wrap header__inner header__inner--site">
     <button type="button" class="burger" id="burger" aria-expanded="false" aria-controls="nav"><span class="burger__label">Menú</span></button>
 
-    <a class="brand" href="#inicio" aria-label="Azahar Nail Studio, ir al inicio">
-      <span class="brand__name">Azahar</span><span class="brand__tag">Nail Studio</span>
+    <a class="brand" href="#inicio" aria-label="{{negocio.nombre}}, ir al inicio">
+      <span class="brand__name">{{negocio.marca}}</span>{{#if negocio.tieneSubmarca}}<span class="brand__tag">{{negocio.submarca}}</span>{{/if}}
     </a>
 
     <nav class="nav" id="nav" aria-label="Navegación principal">
@@ -134,22 +95,22 @@
   <section class="hero" id="inicio" aria-labelledby="hero-title">
     <div class="wrap hero__grid">
       <div class="hero__copy">
-        <h1 class="hero__title" id="hero-title">Uñas y limpieza facial en <em>Triana, Sevilla</em></h1>
+        <h1 class="hero__title" id="hero-title">{{textos.portada.titulo}} <em>{{textos.portada.destacado}}</em></h1>
         <div class="hero__foot">
-          <p class="hero__lead">Manicura y pedicura semipermanente, uñas de gel, relleno de gel y limpieza facial.</p>
+          <p class="hero__lead">{{textos.portada.bajada}}</p>
           <div class="hero__actions">
             <a class="btn" href="#reservar" data-book id="hero-cta">Reservar cita</a>
             <a class="link" href="#servicios">Ver servicios</a>
           </div>
-          <p class="hero__meta">Lunes a viernes, de 9:00 a 17:00 <span aria-hidden="true">·</span> <a href="tel:+34624293129" class="nb">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></p>
+          <p class="hero__meta">{{horarioResumen}} <span aria-hidden="true">·</span> <a href="{{contacto.telHref}}" class="nb">{{contacto.telVisible}}</a></p>
         </div>
       </div>
 
-      <!-- Fotografía temporal (placeholder): sustituir por una foto real, vertical (4:5 o similar).
-           Se recorta con object-fit: cover entre ~2:3 y 1:1 según el tamaño de pantalla, así que el motivo debe estar centrado.
+      <!-- Fotografía de portada (fotos.portada en site.config.mjs). Vertical (4:5 o similar): se recorta con object-fit: cover
+           entre ~2:3 y 1:1 según la pantalla, así que el motivo debe estar centrado.
            Sin clase .reveal a propósito: es la imagen LCP y no debe esperar a JavaScript. -->
       <figure class="photo hero__media">
-        <img src="assets/img/photos/portada.webp" width="1200" height="1500" alt="" data-placeholder fetchpriority="high" decoding="async">
+        <img src="{{fotos.portada.src}}" width="{{fotos.portada.width}}" height="{{fotos.portada.height}}" alt="{{fotos.portada.alt}}"{{#if fotos.portada.provisional}} data-placeholder{{/if}} fetchpriority="high" decoding="async">
       </figure>
     </div>
   </section>
@@ -159,65 +120,39 @@
     <div class="wrap">
       <header class="section-head reveal">
         <p class="label">Servicios</p>
-        <h2 class="statement" id="servicios-title">Manos, pies y rostro.</h2>
-        <p class="section-note">Duración y precio de cada servicio. Pago en el salón.</p>
+        <h2 class="statement" id="servicios-title">{{textos.servicios.titulo}}</h2>
+        <p class="section-note">{{textos.servicios.nota}}</p>
       </header>
 
       <ol class="svc-list">
+{{#each servicios}}
         <li class="svc reveal">
-          <span class="svc__n" aria-hidden="true">01</span>
-          <h3 class="svc__name">Manicura semipermanente</h3>
-          <p class="svc__meta"><span class="svc__cat">Manos</span><span class="svc__min">45 min</span></p>
-          <p class="svc__price"><span class="sr-only">Precio: </span>18&nbsp;€</p>
-          <a class="svc__cta" href="#reservar" data-book data-cal-link="jmwebstudio/manicura-semipermanente" data-service="Manicura semipermanente" aria-label="Reservar Manicura semipermanente"><span>Reservar</span></a>
+          <span class="svc__n" aria-hidden="true">{{numero}}</span>
+          <h3 class="svc__name">{{nombre}}</h3>
+          <p class="svc__meta"><span class="svc__cat">{{categoria}}</span><span class="svc__min">{{duracion}}</span></p>
+          <p class="svc__price"><span class="sr-only">Precio: </span>{{precioTexto}}</p>
+          <a class="svc__cta" href="#reservar" data-book data-cal-link="{{calLink}}" data-service="{{nombre}}" aria-label="Reservar {{nombre}}"><span>Reservar</span></a>
         </li>
-        <li class="svc reveal">
-          <span class="svc__n" aria-hidden="true">02</span>
-          <h3 class="svc__name">Uñas de gel</h3>
-          <p class="svc__meta"><span class="svc__cat">Manos</span><span class="svc__min">1 h 30 min</span></p>
-          <p class="svc__price"><span class="sr-only">Precio: </span>35&nbsp;€</p>
-          <a class="svc__cta" href="#reservar" data-book data-cal-link="jmwebstudio/unas-gel" data-service="Uñas de gel" aria-label="Reservar Uñas de gel"><span>Reservar</span></a>
-        </li>
-        <li class="svc reveal">
-          <span class="svc__n" aria-hidden="true">03</span>
-          <h3 class="svc__name">Relleno de gel</h3>
-          <p class="svc__meta"><span class="svc__cat">Manos</span><span class="svc__min">1 h 15 min</span></p>
-          <p class="svc__price"><span class="sr-only">Precio: </span>28&nbsp;€</p>
-          <a class="svc__cta" href="#reservar" data-book data-cal-link="jmwebstudio/relleno-gel" data-service="Relleno de gel" aria-label="Reservar Relleno de gel"><span>Reservar</span></a>
-        </li>
-        <li class="svc reveal">
-          <span class="svc__n" aria-hidden="true">04</span>
-          <h3 class="svc__name">Pedicura semipermanente</h3>
-          <p class="svc__meta"><span class="svc__cat">Pies</span><span class="svc__min">1 h</span></p>
-          <p class="svc__price"><span class="sr-only">Precio: </span>25&nbsp;€</p>
-          <a class="svc__cta" href="#reservar" data-book data-cal-link="jmwebstudio/pedicura-semipermanente" data-service="Pedicura semipermanente" aria-label="Reservar Pedicura semipermanente"><span>Reservar</span></a>
-        </li>
-        <li class="svc reveal">
-          <span class="svc__n" aria-hidden="true">05</span>
-          <h3 class="svc__name">Limpieza facial</h3>
-          <p class="svc__meta"><span class="svc__cat">Rostro</span><span class="svc__min">45 min</span></p>
-          <p class="svc__price"><span class="sr-only">Precio: </span>30&nbsp;€</p>
-          <a class="svc__cta" href="#reservar" data-book data-cal-link="jmwebstudio/limpieza-facial" data-service="Limpieza facial" aria-label="Reservar Limpieza facial"><span>Reservar</span></a>
-        </li>
+{{/each}}
       </ol>
 
-      <p class="services__foot reveal">¿Dudas sobre cuál elegir? <a href="https://wa.me/34624293129?text=Hola%2C%20escribo%20desde%20la%20web%20de%20Azahar%20Nail%20Studio%20(demo%20de%20JM%20Web%20Studio).%20Me%20gustar%C3%ADa%20pedir%20informaci%C3%B3n." target="_blank" rel="noopener">Pregúntanos por WhatsApp</a></p>
+      <p class="services__foot reveal">{{textos.servicios.pie}} <a href="{{contacto.waHref}}" target="_blank" rel="noopener">{{textos.servicios.pieEnlace}}</a></p>
     </div>
   </section>
 
   <!-- ============ Estudio ============ -->
   <section class="studio" id="estudio" aria-labelledby="estudio-title">
     <div class="wrap studio__grid">
-      <!-- Fotografía temporal (placeholder): sustituir por una foto real del estudio, proporción 3:2 -->
+      <!-- Foto del local (fotos.estudio), proporción 3:2 -->
       <figure class="photo studio__media reveal">
-        <img src="assets/img/photos/estudio.webp" width="1500" height="1000" alt="" data-placeholder loading="lazy" decoding="async">
+        <img src="{{fotos.estudio.src}}" width="{{fotos.estudio.width}}" height="{{fotos.estudio.height}}" alt="{{fotos.estudio.alt}}"{{#if fotos.estudio.provisional}} data-placeholder{{/if}} loading="lazy" decoding="async">
       </figure>
       <div class="studio__text reveal">
         <p class="label">Estudio</p>
         <div class="studio__copy">
-          <h2 class="statement statement--sm" id="estudio-title">Un estudio de uñas y estética en Triana, Sevilla.</h2>
-          <!-- Pendiente de contenido real del cliente (quién, cómo, dónde). No inventar: sustituir este texto cuando exista. -->
-          <p>Eliges el servicio y reservas tu cita online.</p>
+          <h2 class="statement statement--sm" id="estudio-title">{{textos.estudio.titulo}}</h2>
+          <!-- Texto del negocio (textos.estudio.texto): sustituir por la historia real del cliente cuando exista. No inventar. -->
+          <p>{{textos.estudio.texto}}</p>
           <a class="link" href="#reservar" data-book>Reservar cita</a>
         </div>
       </div>
@@ -228,36 +163,56 @@
   <section class="gallery" id="galeria" aria-labelledby="galeria-title">
     <div class="wrap">
       <h2 class="label reveal" id="galeria-title">Galería</h2>
-      <!-- Fotografías temporales (placeholders): sustituir por fotos reales, proporciones 4:5, 1:1 y 4:3 -->
+      <!-- Fotos de la galería (fotos.galeria): proporciones 4:5, 1:1 y 4:3 -->
       <div class="gallery__grid">
-        <figure class="photo gallery__a reveal"><img src="assets/img/photos/galeria-1.webp" width="1000" height="1250" alt="" data-placeholder loading="lazy" decoding="async"></figure>
-        <figure class="photo gallery__b reveal"><img src="assets/img/photos/galeria-2.webp" width="1000" height="1000" alt="" data-placeholder loading="lazy" decoding="async"></figure>
-        <figure class="photo gallery__c reveal"><img src="assets/img/photos/galeria-3.webp" width="1200" height="900" alt="" data-placeholder loading="lazy" decoding="async"></figure>
+{{#each fotos.galeria}}
+        <figure class="photo gallery__{{slot}} reveal"><img src="{{src}}" width="{{width}}" height="{{height}}" alt="{{alt}}"{{#if provisional}} data-placeholder{{/if}} loading="lazy" decoding="async"></figure>
+{{/each}}
       </div>
     </div>
   </section>
 
+{{#if tieneResenas}}
+  <!-- ============ Reseñas ============ -->
+  <section class="reviews" id="resenas" aria-labelledby="resenas-title">
+    <div class="wrap">
+      <p class="label reveal">Reseñas</p>
+      <h2 class="statement reveal" id="resenas-title">{{textos.resenas.titulo}}</h2>
+      <ul class="reviews__list">
+{{#each resenas}}
+        <li class="review reveal">
+          <figure>
+            <blockquote><p>{{texto}}</p></blockquote>
+            <figcaption><span class="review__name">{{nombre}}</span>{{#if servicio}} · {{servicio}}{{/if}}</figcaption>
+          </figure>
+        </li>
+{{/each}}
+      </ul>
+{{#if modoDemo}}
+      <p class="reviews__note">{{demo.notaResenas}}</p>
+{{/if}}
+    </div>
+  </section>
+
+{{/if}}
   <!-- ============ Reserva (Cal.com) ============ -->
-  <section class="booking" id="reservar" aria-labelledby="reservar-title" data-cal-origin="https://app.cal.com" data-cal-base="https://cal.com">
+  <section class="booking" id="reservar" aria-labelledby="reservar-title" data-cal-origin="{{cal.origen}}" data-cal-base="{{cal.base}}" data-cal-color="{{tema.tinta}}">
     <div class="wrap booking__grid">
       <header class="booking__intro reveal">
         <h2 class="display booking__title" id="reservar-title">Reserva<br>tu cita</h2>
         <dl class="terms">
-          <div><dt>Pago</dt><dd>En el salón. Reservar no cuesta nada.</dd></div>
-          <div><dt>Antelación</dt><dd>Hasta 2 horas antes, si hay hueco.</dd></div>
-          <div><dt>Cambios</dt><dd>Desde el enlace del email de confirmación.</dd></div>
+{{#each condiciones}}
+          <div><dt>{{titulo}}</dt><dd>{{texto}}</dd></div>
+{{/each}}
         </dl>
-        <p class="booking__alt">¿Prefieres escribirnos? <a href="https://wa.me/34624293129?text=Hola%2C%20escribo%20desde%20la%20web%20de%20Azahar%20Nail%20Studio%20(demo%20de%20JM%20Web%20Studio).%20Me%20gustar%C3%ADa%20pedir%20informaci%C3%B3n." target="_blank" rel="noopener">WhatsApp</a> o <a href="tel:+34624293129">llamar</a>.</p>
+        <p class="booking__alt">¿Prefieres escribirnos? <a href="{{contacto.waHref}}" target="_blank" rel="noopener">WhatsApp</a> o <a href="{{contacto.telHref}}">llamar</a>.</p>
       </header>
 
       <div class="booking__panel reveal" id="cal-panel">
         <div class="chips" id="service-chips" role="group" aria-label="Servicio a reservar">
-          <button type="button" class="chip is-active" aria-pressed="true" data-cal-link="jmwebstudio" data-service="Todos los servicios">Todos</button>
-          <button type="button" class="chip" aria-pressed="false" data-cal-link="jmwebstudio/manicura-semipermanente" data-service="Manicura semipermanente">Manicura</button>
-          <button type="button" class="chip" aria-pressed="false" data-cal-link="jmwebstudio/unas-gel" data-service="Uñas de gel">Uñas de gel</button>
-          <button type="button" class="chip" aria-pressed="false" data-cal-link="jmwebstudio/relleno-gel" data-service="Relleno de gel">Relleno</button>
-          <button type="button" class="chip" aria-pressed="false" data-cal-link="jmwebstudio/pedicura-semipermanente" data-service="Pedicura semipermanente">Pedicura</button>
-          <button type="button" class="chip" aria-pressed="false" data-cal-link="jmwebstudio/limpieza-facial" data-service="Limpieza facial">Facial</button>
+{{#each servicios}}
+          <button type="button" class="chip{{#if @first}} is-active{{/if}}" aria-pressed="{{#if @first}}true{{else}}false{{/if}}" data-cal-link="{{calLink}}" data-service="{{nombre}}">{{etiqueta}}</button>
+{{/each}}
         </div>
 
         <p class="sr-only" id="embed-status" role="status"></p>
@@ -267,12 +222,12 @@
             <h3>Calendario de reservas</h3>
             <p>Para mostrar los huecos libres se carga el calendario de Cal.com, un servicio externo que puede usar cookies.</p>
             <button type="button" class="btn" id="cal-load">Aceptar y mostrar el calendario</button>
-            <a class="embed__alt link" href="https://cal.com/jmwebstudio" target="_blank" rel="noopener">o ábrelo en una pestaña nueva</a>
+            <a class="embed__alt link" href="{{cal.enlaceExterno}}" target="_blank" rel="noopener">o ábrelo en una pestaña nueva</a>
           </div>
           <div id="cal-inline" class="embed__inline" hidden></div>
           <div class="embed__fallback" id="cal-fallback" hidden>
             <p>No se ha podido cargar el calendario aquí (quizá un bloqueador de contenido lo impide).</p>
-            <a class="btn" id="cal-fallback-link" href="https://cal.com/jmwebstudio" target="_blank" rel="noopener">Reservar en Cal.com</a>
+            <a class="btn" id="cal-fallback-link" href="{{cal.enlaceExterno}}" target="_blank" rel="noopener">Reservar en Cal.com</a>
           </div>
         </div>
       </div>
@@ -283,30 +238,35 @@
   <section class="visit" id="contacto" aria-labelledby="contacto-title">
     <div class="wrap visit__grid">
       <div class="visit__info reveal">
-        <h2 class="display visit__title" id="contacto-title">Visítanos<br>en Triana</h2>
+        <h2 class="display visit__title" id="contacto-title">{{#each textos.ubicacion.lineas}}{{#unless @first}}<br>{{/unless}}{{this}}{{/each}}</h2>
 
         <dl class="hours">
-          <div><dt>Lunes a viernes</dt><dd>9:00 – 17:00</dd></div>
-          <div><dt>Sábado y domingo</dt><dd>Cerrado</dd></div>
+{{#each horario}}
+          <div><dt>{{etiqueta}}</dt><dd>{{rango}}</dd></div>
+{{/each}}
         </dl>
-        <p class="open-now" id="open-now" data-days="Mon,Tue,Wed,Thu,Fri" data-open="09:00" data-close="17:00" aria-live="polite" hidden></p>
+        <p class="open-now" id="open-now" data-horario="{{horarioJson}}" aria-live="polite" hidden></p>
 
-        <p class="visit__phone"><a href="tel:+34624293129">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></p>
+        <p class="visit__address">{{negocio.direccionLinea}}{{#if modoDemo}} <span class="visit__note">· {{demo.notaDireccion}}</span>{{/if}}</p>
+        <p class="visit__phone"><a href="{{contacto.telHref}}">{{contacto.telVisible}}</a></p>
+{{#if contacto.tieneEmail}}
+        <p class="visit__email"><a href="mailto:{{contacto.email}}">{{contacto.email}}</a></p>
+{{/if}}
         <div class="contact-actions">
-          <a class="btn" href="https://wa.me/34624293129?text=Hola%2C%20escribo%20desde%20la%20web%20de%20Azahar%20Nail%20Studio%20(demo%20de%20JM%20Web%20Studio).%20Me%20gustar%C3%ADa%20pedir%20informaci%C3%B3n." target="_blank" rel="noopener">WhatsApp</a>
-          <a class="btn btn--line" href="tel:+34624293129">Llamar</a>
+          <a class="btn" href="{{contacto.waHref}}" target="_blank" rel="noopener">WhatsApp</a>
+          <a class="btn btn--line" href="{{contacto.telHref}}">Llamar</a>
         </div>
-        <a class="link visit__route" href="https://www.google.com/maps/search/?api=1&amp;query=Triana%2C%20Sevilla" target="_blank" rel="noopener">Cómo llegar</a>
+        <a class="link visit__route" href="{{mapa.enlace}}" target="_blank" rel="noopener">Cómo llegar</a>
       </div>
 
       <div class="visit__map reveal">
         <p class="sr-only" id="map-status" role="status"></p>
-        <div class="map" id="map-wrap" data-src="https://www.google.com/maps?q=Triana%2C%20Sevilla&amp;hl=es&amp;z=15&amp;output=embed" data-title="Mapa del barrio de Triana, Sevilla">
+        <div class="map" id="map-wrap" data-src="{{mapa.incrustado}}" data-title="Mapa de {{mapa.consulta}}">
           <div class="embed__gate" id="map-gate">
-            <h3>Mapa de Triana</h3>
+            <h3>Mapa de {{mapa.consulta}}</h3>
             <p>Para mostrar el mapa se carga Google Maps, un servicio externo que puede usar cookies.</p>
             <button type="button" class="btn" id="map-load">Aceptar y mostrar el mapa</button>
-            <a class="embed__alt link" href="https://www.google.com/maps/search/?api=1&amp;query=Triana%2C%20Sevilla" target="_blank" rel="noopener">o ábrelo en Google Maps</a>
+            <a class="embed__alt link" href="{{mapa.enlace}}" target="_blank" rel="noopener">o ábrelo en Google Maps</a>
           </div>
         </div>
       </div>
@@ -328,8 +288,11 @@
       <div class="footer__col">
         <h2 class="footer__h">Contacto</h2>
         <ul>
-          <li><a href="https://wa.me/34624293129?text=Hola%2C%20escribo%20desde%20la%20web%20de%20Azahar%20Nail%20Studio%20(demo%20de%20JM%20Web%20Studio).%20Me%20gustar%C3%ADa%20pedir%20informaci%C3%B3n." target="_blank" rel="noopener">WhatsApp</a></li>
-          <li><a href="tel:+34624293129">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></li>
+          <li><a href="{{contacto.waHref}}" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="{{contacto.telHref}}">{{contacto.telVisible}}</a></li>
+{{#if contacto.tieneEmail}}
+          <li><a href="mailto:{{contacto.email}}">{{contacto.email}}</a></li>
+{{/if}}
         </ul>
       </div>
       <nav class="footer__col" aria-label="Información legal">
@@ -343,11 +306,13 @@
       </nav>
     </div>
 
-    <p class="footer__mark" aria-hidden="true">Azahar Nail Studio</p>
+    <p class="footer__mark" aria-hidden="true">{{negocio.nombre}}</p>
 
     <div class="footer__bottom">
-      <p>© <span id="year">2026</span> Azahar Nail Studio · Triana, Sevilla</p>
-      <p>Web de demostración de <a href="https://wa.me/34624293129?text=Hola%20Juan%2C%20he%20visto%20la%20demo%20de%20Azahar%20Nail%20Studio%20y%20me%20interesa%20una%20web%20para%20mi%20negocio." target="_blank" rel="noopener">JM Web Studio</a></p>
+      <p>© <span id="year">{{anio}}</span> {{negocio.nombre}} · {{negocio.zona}}</p>
+{{#if modoDemo}}
+      <p>Web de demostración de <a href="{{demo.barraHref}}" target="_blank" rel="noopener">{{demo.autor}}</a></p>
+{{/if}}
     </div>
   </div>
 </footer>
@@ -355,8 +320,8 @@
 <!-- Barra fija móvil: aparece cuando el botón principal de la portada sale de pantalla -->
 <div class="mobile-bar is-hidden" id="mobile-bar">
   <a class="btn mobile-bar__book" href="#reservar" data-book>Reservar cita</a>
-  <a class="btn btn--line" href="https://wa.me/34624293129?text=Hola%2C%20escribo%20desde%20la%20web%20de%20Azahar%20Nail%20Studio%20(demo%20de%20JM%20Web%20Studio).%20Me%20gustar%C3%ADa%20pedir%20informaci%C3%B3n." target="_blank" rel="noopener">WhatsApp</a>
-  <a class="btn btn--line" href="tel:+34624293129" aria-label="Llamar al +34 624 29 31 29">Llamar</a>
+  <a class="btn btn--line" href="{{contacto.waHref}}" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="btn btn--line" href="{{contacto.telHref}}" aria-label="Llamar al {{contacto.telVisible}}">Llamar</a>
 </div>
 
 <script src="assets/js/main.js" defer></script>

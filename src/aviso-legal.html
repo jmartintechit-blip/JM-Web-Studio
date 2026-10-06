@@ -1,57 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Aviso legal | Azahar Nail Studio</title>
-  <meta name="description" content="Aviso legal de Azahar Nail Studio: datos del titular, condiciones de uso, servicio de reservas, propiedad intelectual y legislación aplicable.">
-  <meta name="theme-color" content="#F5F1E9">
-  <link rel="canonical" href="%SITE_URL%/aviso-legal.html">
-  <!-- scripts/build.mjs elimina esta etiqueta cuando INDEXABLE=true -->
-  <meta name="robots" content="noindex, nofollow">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/img/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="preload" href="assets/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="assets/fonts/hanken-grotesk.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/css/styles.css">
+{{> head-inicio}}
+  <title>Aviso legal | {{negocio.nombre}}</title>
+  <meta name="description" content="Aviso legal de {{negocio.nombre}}: datos del titular, condiciones de uso, servicio de reservas, propiedad intelectual y legislación aplicable.">
+  <link rel="canonical" href="{{siteUrl}}/aviso-legal.html">
+{{> head-fin}}
 </head>
 <body>
-<a class="skip-link" href="#contenido">Saltar al contenido</a>
-
-<header class="header">
-  <div class="wrap header__inner">
-    <a class="brand" href="index.html" aria-label="Azahar Nail Studio, volver al inicio">
-      <span class="brand__name">Azahar</span><span class="brand__tag">Nail Studio</span>
-    </a>
-    <a class="btn btn--line btn--sm" href="index.html">Volver a la web</a>
-  </div>
-</header>
+{{> cabecera-legal}}
 
 <main id="contenido" class="legal">
   <div class="wrap legal__wrap">
     <h1 class="legal__title">Aviso legal</h1>
-    <p class="legal__updated">Última actualización: 6 de octubre de 2026</p>
+    <p class="legal__updated">Última actualización: {{legal.actualizado}}</p>
 
-    <aside class="legal__note" role="note">
-      <strong>Texto orientativo de una web de demostración.</strong> Los datos del titular del negocio todavía no se han facilitado y aparecen marcados como <span class="pending">Pendiente</span>. Antes de publicar la web real hay que completarlos y que un profesional revise el contenido.
-    </aside>
+    {{> nota-legal}}
 
     <section>
       <h2>1. Datos identificativos del titular</h2>
       <p>En cumplimiento del artículo 10 de la Ley 34/2002, de Servicios de la Sociedad de la Información y de Comercio Electrónico (LSSI-CE), estos son los datos del titular de este sitio web:</p>
-      <dl class="legal__data">
-      <div><dt>Titular / razón social</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>NIF / CIF</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>Domicilio</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>Correo electrónico</dt><dd><span class="pending">Pendiente: lo facilita el titular</span></dd></div>
-      <div><dt>Teléfono / WhatsApp</dt><dd><a href="tel:+34624293129">+34&nbsp;624&nbsp;29&nbsp;31&nbsp;29</a></dd></div>
-    </dl>
+      {{> datos-titular}}
     </section>
 
     <section>
       <h2>2. Objeto y condiciones de uso</h2>
-      <p>Este sitio web da a conocer los servicios de Azahar Nail Studio y permite reservar cita. Acceder a la web y usarla implica aceptar este aviso legal. La persona usuaria se compromete a hacer un uso adecuado de la web y de sus contenidos, conforme a la ley, la buena fe y el orden público.</p>
+      <p>Este sitio web da a conocer los servicios de {{negocio.nombre}} y permite reservar cita. Acceder a la web y usarla implica aceptar este aviso legal. La persona usuaria se compromete a hacer un uso adecuado de la web y de sus contenidos, conforme a la ley, la buena fe y el orden público.</p>
     </section>
 
     <section>
@@ -91,16 +65,6 @@
   </div>
 </main>
 
-<footer class="footer footer--slim">
-  <div class="wrap footer__bottom">
-    <p>© <span id="year">2026</span> Azahar Nail Studio</p>
-    <nav aria-label="Información legal" class="footer__legal">
-      <a href="aviso-legal.html">Aviso legal</a>
-      <a href="politica-privacidad.html">Privacidad</a>
-      <a href="politica-cookies.html">Cookies</a>
-    </nav>
-  </div>
-</footer>
-<script src="assets/js/main.js" defer></script>
+{{> pie-legal}}
 </body>
 </html>

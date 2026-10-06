@@ -1,16 +1,19 @@
 {
-  "name": "azahar-nail-studio",
+  "name": "web-salon-plantilla",
   "version": "1.0.0",
   "private": true,
-  "description": "Web estática de Azahar Nail Studio (uñas y limpieza facial en Triana, Sevilla) con reservas integradas mediante Cal.com.",
+  "description": "Web estática de demostración (salón de uñas y estética ficticio de Sevilla) y plantilla para crear la web de otros negocios: todo sale de site.config.mjs. Reservas con Cal.com.",
   "type": "module",
-  "engines": { "node": ">=20.12" },
+  "engines": {
+    "node": ">=20.12"
+  },
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
-    "validate": "html-validate src/*.html",
+    "validate": "node scripts/validate.mjs",
     "test": "node --test",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "assets": "node scripts/brand-assets.mjs"
   },
   "devDependencies": {
     "html-validate": "^9.0.0",

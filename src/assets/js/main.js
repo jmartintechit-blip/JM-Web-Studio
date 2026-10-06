@@ -79,11 +79,34 @@
   /* ---------------------------------------------------------------------
      2. Aviso de demostración (descartable durante la sesión)
      --------------------------------------------------------------------- */
+  /* Nombre de ?para=Nombre: solo texto, sin caracteres de control ni de dirección de texto, y como máximo 60 caracteres */
+  function cleanName(raw) {
+    if (!raw) return '';
+    var s = String(raw).replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2060-\u2069\ufeff]/g, ' ').replace(/\s+/g, ' ').trim();
+    return (Array.from ? Array.from(s) : s.split('')).slice(0, 60).join('').trim();
+  }
+
+  function personalizeDemoBar(bar) {
+    var name = '';
+    try { name = cleanName(new URLSearchParams(window.location.search).get('para')); } catch (e) { return; }
+    if (!name) return;
+    var msg = $('#demo-msg', bar);
+    var link = $('#demo-link', bar);
+    var template = bar.getAttribute('data-msg-para') || '';
+    // textContent (nunca innerHTML) y reemplazo con función (el nombre no se interpreta como patrón)
+    if (msg && template) msg.textContent = template.replace('{nombre}', function () { return name; });
+    if (link) {
+      link.textContent = bar.getAttribute('data-ask-para') || link.textContent;
+      link.href = (bar.getAttribute('data-wa') || '') + encodeURIComponent((bar.getAttribute('data-wa-text') || '') + ' (' + name + ')');
+    }
+  }
+
   function initDemoBar() {
     var bar = $('#demo-bar');
     var close = $('#demo-close');
     if (!bar || !close) return;
     if (store.get('sessionStorage', 'azahar-demo-closed') === '1') { bar.hidden = true; return; }
+    personalizeDemoBar(bar);
     close.addEventListener('click', function () {
       store.set('sessionStorage', 'azahar-demo-closed', '1');
       bar.classList.add('is-hiding');
@@ -202,7 +225,7 @@
      5. Reservas: Cal.com inline + selector de servicio
      --------------------------------------------------------------------- */
   var CAL_NS = 'azahar';
-  var calSection, calOrigin, calBase;
+  var calSection, calOrigin, calBase, calColor;
   var calReady = false;
   var calSeq = 0;
   var currentLink = '';   // se toma del chip activo en initBooking
@@ -239,7 +262,7 @@
     window.Cal('init', CAL_NS, { origin: calOrigin });
     window.Cal.ns[CAL_NS]('ui', {
       theme: 'light',
-      styles: { branding: { brandColor: '#1E1C1A' } },
+      styles: { branding: { brandColor: calColor } },
       hideEventTypeDetails: false,
       layout: 'month_view'
     });
@@ -333,6 +356,7 @@
     if (!calSection) return;
     calOrigin = calSection.getAttribute('data-cal-origin') || 'https://app.cal.com';
     calBase = calSection.getAttribute('data-cal-base') || 'https://cal.com';
+    calColor = calSection.getAttribute('data-cal-color') || '#1E1C1A';
     var initial = $('#service-chips .chip.is-active');
     currentLink = initial ? initial.getAttribute('data-cal-link') : '';
 
@@ -441,22 +465,22 @@
     if (y) y.textContent = String(new Date().getFullYear());
   }
 
-  /* Indicador "abierto ahora": lee días y horas de los data-* de #open-now (hora de Madrid) */
+  /* Indicador "abierto ahora": lee las franjas de data-horario (JSON generado desde site.config.mjs) en hora de Madrid */
   function initOpenNow() {
     var el = $('#open-now');
     if (!el || !window.Intl || !Intl.DateTimeFormat) return;
+    var franjas;
+    try { franjas = JSON.parse(el.getAttribute('data-horario') || '[]'); } catch (e) { return; }
+    if (!franjas.length) return;
     var toMinutes = function (hhmm) { var t = hhmm.split(':'); return parseInt(t[0], 10) * 60 + parseInt(t[1], 10); };
-    var days = el.getAttribute('data-days').split(',');
-    var from = toMinutes(el.getAttribute('data-open'));
-    var to = toMinutes(el.getAttribute('data-close'));
     var parts = new Intl.DateTimeFormat('en-GB', {
       timeZone: 'Europe/Madrid', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
     }).formatToParts(new Date());
     var get = function (type) { var p = parts.filter(function (x) { return x.type === type; })[0]; return p ? p.value : ''; };
     var now = parseInt(get('hour'), 10) * 60 + parseInt(get('minute'), 10);
-    var isOpen = days.indexOf(get('weekday')) !== -1 && now >= from && now < to;
-    el.textContent = isOpen ? 'Abierto ahora, hasta las ' + el.getAttribute('data-close') : 'Cerrado ahora';
-    el.classList.toggle('is-open', isOpen);
+    var current = franjas.filter(function (f) { return f.d.indexOf(get('weekday')) !== -1 && now >= toMinutes(f.o) && now < toMinutes(f.c); })[0];
+    el.textContent = current ? 'Abierto ahora, hasta las ' + current.c.replace(/^0/, '') : 'Cerrado ahora';
+    el.classList.toggle('is-open', !!current);
     el.hidden = false;
   }
 

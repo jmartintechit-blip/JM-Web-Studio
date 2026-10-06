@@ -1,5 +1,7 @@
-# Netlify: compila src/ a dist/ con scripts/build.mjs (sin dependencias).
-# SITE_URL no hace falta: Netlify aporta la variable URL con la dirección pública del sitio.
+# Netlify: compila las plantillas de src/ con site.config.mjs y publica la carpeta `dist/`.
+#   · Build:      node scripts/build.mjs  (sin dependencias; la UNICA carpeta que se publica es `dist`)
+#   · Demo/producción: lo decide `modoDemo` en site.config.mjs (true = noindex y robots Disallow; false = indexable con sitemap)
+#   · SITE_URL no hace falta en modo demo: Netlify aporta la variable URL con la dirección pública del sitio.
 [build]
   command = "node scripts/build.mjs"
   publish = "dist"
@@ -7,7 +9,6 @@
 [build.environment]
   NODE_VERSION = "22"
   NPM_FLAGS = "--omit=dev"   # las herramientas de test (Playwright, html-validate) no se instalan en el despliegue
-  # INDEXABLE = "true"       # activar al publicar la web real de un cliente (quita noindex y genera sitemap.xml)
 
 # Cabeceras de seguridad. No se define Content-Security-Policy porque el calendario de Cal.com
 # no se ha podido probar contra una política concreta desde el entorno de desarrollo.
