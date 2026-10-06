@@ -35,7 +35,7 @@ async function capture(file, { width, height, mobile = false, scrollTo, fullPage
 }
 
 await capture('desktop-hero.jpg', { width: 1440, height: 900 });
-await capture('desktop-servicios.jpg', { width: 1440, height: 900, scrollTo: '#servicios' });
+await capture('desktop-servicios.jpg', { width: 1440, height: 900, scrollTo: '#servicios .section-head' });
 await capture('mobile-hero.jpg', { width: 390, height: 844, mobile: true });
 await capture('mobile-pagina-completa.jpg', { width: 390, height: 844, mobile: true, fullPage: true });
 
