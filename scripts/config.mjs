@@ -30,6 +30,9 @@ export async function loadConfig(path = process.env.SITE_CONFIG || DEFAULT_CONFI
   return module.default;
 }
 
+/** Franjas de una fila del horario: `franjas: [{ abre, cierra }, …]`, o la forma corta `abre` + `cierra` (una sola franja). */
+const franjasDe = (h) => (h.cerrado ? [] : Array.isArray(h.franjas) ? h.franjas : [{ abre: h.abre, cierra: h.cierra }]);
+
 const isHex = (v) => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v);
 const isHour = (v) => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
 const filled = (v) => typeof v === 'string' && v.trim() !== '';
@@ -69,7 +72,17 @@ export function validateConfig(cfg, { srcDir }) {
   (cfg.horario || []).forEach((h, i) => {
     need(Array.isArray(h.dias) && h.dias.length > 0 && h.dias.every((d) => d in DIAS), `horario[${i}]: «dias» admite ${Object.keys(DIAS).join(', ')}`);
     need(filled(h.etiqueta), `horario[${i}]: falta la etiqueta`);
-    if (!h.cerrado) need(isHour(h.abre) && isHour(h.cierra), `horario[${i}]: «abre» y «cierra» con formato HH:MM`);
+    if (h.cerrado) return;
+    const franjas = franjasDe(h);
+    need(franjas.length > 0, `horario[${i}]: indica «franjas» (una o varias), «abre» y «cierra», o «cerrado: true»`);
+    franjas.forEach((f, k) => {
+      const valid = isHour(f?.abre) && isHour(f?.cierra);
+      need(valid, `horario[${i}]: cada franja necesita «abre» y «cierra» con formato HH:MM`);
+      if (!valid) return;
+      need(f.abre < f.cierra, `horario[${i}]: la franja ${f.abre}–${f.cierra} debe abrir antes de cerrar`);
+      const previa = franjas[k - 1];
+      if (previa && isHour(previa.cierra)) need(previa.cierra <= f.abre, `horario[${i}]: las franjas deben ir en orden y sin solaparse (${previa.abre}–${previa.cierra} y ${f.abre}–${f.cierra})`);
+    });
   });
   need((cfg.horario || []).some((h) => !h.cerrado), 'horario: debe haber al menos una franja abierta');
 
@@ -132,13 +145,14 @@ export function buildContext(cfg, { siteUrl, srcDir }) {
   }));
   const primerServicio = servicios[0];
 
-  const horario = cfg.horario.map((h) => ({
-    ...h,
-    abierto: !h.cerrado,
-    rango: h.cerrado ? 'Cerrado' : `${hhmm(h.abre)} – ${hhmm(h.cierra)}`,
-  }));
-  const primeraFranja = horario.find((h) => h.abierto);
-  const horarioJson = JSON.stringify(cfg.horario.filter((h) => !h.cerrado).map((h) => ({ d: h.dias.map((x) => DIAS[x].js), o: h.abre, c: h.cierra })));
+  const horario = cfg.horario.map((h) => {
+    const franjas = franjasDe(h).map((f) => ({ abre: hhmm(f.abre), cierra: hhmm(f.cierra) }));   // para mostrar: 9:00, no 09:00
+    return { ...h, abierto: !h.cerrado, franjas, rango: h.cerrado ? 'Cerrado' : franjas.map((f) => `${f.abre} – ${f.cierra}`).join(' y ') };
+  });
+  const primeraFila = horario.find((h) => h.abierto);
+  // Una entrada por franja (y por grupo de días): así «abierto ahora» entiende la pausa de mediodía
+  const franjasDeCfg = cfg.horario.filter((h) => !h.cerrado).flatMap((h) => franjasDe(h).map((f) => ({ dias: h.dias, abre: f.abre, cierra: f.cierra })));
+  const horarioJson = JSON.stringify(franjasDeCfg.map((f) => ({ d: f.dias.map((x) => DIAS[x].js), o: f.abre, c: f.cierra })));
 
   const waNumero = demo ? cfg.demo.whatsapp : contacto.whatsapp;
   const waSalon = waUrl(waNumero, demo ? cfg.demo.whatsappSalon : contacto.whatsappTexto);
@@ -169,7 +183,7 @@ export function buildContext(cfg, { siteUrl, srcDir }) {
       telephone: contacto.telefono,
       ...(tieneEmail ? { email: contacto.email } : {}),
       address: { '@type': 'PostalAddress', streetAddress: d.calle, postalCode: d.codigoPostal, addressLocality: d.localidad, addressRegion: d.region, addressCountry: d.pais },
-      openingHoursSpecification: cfg.horario.filter((h) => !h.cerrado).map((h) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: h.dias.map((x) => DIAS[x].schema), opens: h.abre, closes: h.cierra })),
+      openingHoursSpecification: franjasDeCfg.map((f) => ({ '@type': 'OpeningHoursSpecification', dayOfWeek: f.dias.map((x) => DIAS[x].schema), opens: f.abre, closes: f.cierra })),
       potentialAction: { '@type': 'ReserveAction', name: 'Reservar cita', target: `${cal.base}/${cal.usuario}` },
       hasOfferCatalog: {
         '@type': 'OfferCatalog',
@@ -188,7 +202,7 @@ export function buildContext(cfg, { siteUrl, srcDir }) {
     negocio: { submarca: '', ...negocio, direccionLinea: [d.calle, [d.codigoPostal, d.localidad].filter(Boolean).join(' ')].filter(Boolean).join(', '), tieneSubmarca: filled(negocio.submarca) },
     contacto: { email: '', ...contacto, telHref: `tel:${contacto.telefono}`, telVisible: phoneText(contacto.telefono), tieneEmail, waHref: waSalon },
     horario,
-    horarioResumen: `${primeraFranja.etiqueta}, de ${hhmm(primeraFranja.abre)} a ${hhmm(primeraFranja.cierra)}`,
+    horarioResumen: `${primeraFila.etiqueta}, ${primeraFila.franjas.map((f) => `de ${f.abre} a ${f.cierra}`).join(' y ')}`,
     horarioJson,
     cal: { ...cal, enlaceExterno: `${cal.base}/${primerServicio.calLink}` },
     mapa: { consulta: negocio.mapa, incrustado: `https://www.google.com/maps?q=${encodeURIComponent(negocio.mapa)}&hl=es&z=15&output=embed`, enlace: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(negocio.mapa)}` },

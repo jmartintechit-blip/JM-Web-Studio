@@ -37,5 +37,5 @@
     Cache-Control = "public, max-age=31536000, immutable"
 
 
-# Las imágenes no llevan caché larga a propósito: las fotos provisionales se sustituirán por fotografía real
-# con el mismo nombre de archivo y no debe quedar la antigua en el navegador (Netlify revalida con ETag).
+# Las imágenes no llevan caché larga a propósito: una foto se puede sustituir por otra con el mismo nombre de archivo
+# y no debe quedar la antigua en el navegador (Netlify revalida con ETag).

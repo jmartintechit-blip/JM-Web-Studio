@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, before, describe, it } from 'node:test';
@@ -7,7 +7,7 @@ import { build, SRC } from '../scripts/build.mjs';
 import { validateConfig } from '../scripts/config.mjs';
 import { imageSize } from '../scripts/image-size.mjs';
 import { render } from '../scripts/template.mjs';
-import { PAGES, SITE_URL, config } from './helpers.mjs';
+import { PAGES, SITE_URL, business, config } from './helpers.mjs';
 import otroNegocio from './fixtures/otro-negocio.config.mjs';
 
 const dirs = [];
@@ -95,6 +95,10 @@ describe('build con modoDemo: false (producción)', () => {
     assert.equal(data.telephone, config.contacto.telefono);
     assert.equal(data.address.streetAddress, config.negocio.direccion.calle);
     assert.equal(data.url, `${SITE_URL}/`);
+    // Una especificación por franja y grupo de días (dos franjas el mismo día = dos especificaciones)
+    const names = { lun: 'Monday', mar: 'Tuesday', mie: 'Wednesday', jue: 'Thursday', vie: 'Friday', sab: 'Saturday', dom: 'Sunday' };
+    const expected = business.schedule.filter((row) => !row.closed).flatMap((row) => row.ranges.map((r) => [row.days.map((d) => names[d]).join(), r.open, r.close]));
+    assert.deepEqual(data.openingHoursSpecification.map((o) => [o.dayOfWeek.join(), o.opens, o.closes]), expected);
   });
 
   it('no deja rastro de la demo', () => {
@@ -112,9 +116,11 @@ describe('validación de la configuración y del entorno', () => {
     return validateConfig(cfg, { srcDir: SRC });
   };
 
-  it('la configuración de la demo es válida', () => {
+  it('la configuración de la demo es válida y las fotos ya no son provisionales', () => {
     assert.deepEqual(validateConfig(demoConfig, { srcDir: SRC }).errors, []);
-    assert.deepEqual(validateConfig(prodConfig, { srcDir: SRC }).errors, []);
+    const prod = validateConfig(prodConfig, { srcDir: SRC });
+    assert.deepEqual(prod.errors, []);
+    assert.ok(!prod.warnings.some((w) => /provisional/.test(w)), `avisos inesperados: ${prod.warnings.join(' | ')}`);
   });
 
   it('falla con un mensaje claro si falta la URL pública', async () => {
@@ -122,7 +128,7 @@ describe('validación de la configuración y del entorno', () => {
   });
 
   it('modoDemo: false exige sitio.url, dirección completa y avisa de lo que falta', () => {
-    const { errors, warnings } = check((c) => { c.sitio.url = ''; c.negocio.direccion.calle = ''; }, { modoDemo: false });
+    const { errors, warnings } = check((c) => { c.sitio.url = ''; c.negocio.direccion.calle = ''; c.fotos.portada.provisional = true; }, { modoDemo: false });
     assert.ok(errors.some((e) => /sitio\.url/.test(e)));
     assert.ok(errors.some((e) => /direccion\.calle/.test(e)));
     assert.ok(warnings.some((w) => /legal\.titular/.test(w)));
@@ -134,12 +140,20 @@ describe('validación de la configuración y del entorno', () => {
       c.reservas.servicios[0].slug = 'Con Espacios';
       c.reservas.servicios[1].minutos = 0;
       c.reservas.servicios[2].precio = '18';
-      c.horario[0].abre = '9h';
+      c.horario[0].franjas[0].abre = '9h';
       c.contacto.telefono = '624 29 31 29';
       c.fotos.portada.archivo = 'no-existe.webp';
       c.colores.tinta = 'negro';
     });
     for (const pattern of [/slug/, /minutos/, /precio/, /abre/, /telefono/, /no-existe/, /colores\.tinta/]) assert.ok(errors.some((e) => pattern.test(e)), `no detecta ${pattern}: ${errors.join(' | ')}`);
+  });
+
+  it('valida las franjas del horario: varias el mismo día, en orden, sin solaparse y abriendo antes de cerrar', () => {
+    assert.ok(check((c) => { c.horario[0].franjas[1].abre = '13:00'; }).errors.some((e) => /sin solaparse/.test(e)), 'franjas solapadas');
+    assert.ok(check((c) => { c.horario[0].franjas.reverse(); }).errors.some((e) => /en orden/.test(e)), 'franjas desordenadas');
+    assert.ok(check((c) => { c.horario[1].franjas[0] = { abre: '14:00', cierra: '10:00' }; }).errors.some((e) => /abrir antes de cerrar/.test(e)), 'cierre antes que apertura');
+    assert.ok(check((c) => { c.horario[1].franjas = []; }).errors.some((e) => /franjas/.test(e)), 'fila abierta sin franjas');
+    assert.deepEqual(check((c) => { c.horario[1] = { dias: ['sab'], etiqueta: 'Sábado', abre: '10:00', cierra: '14:00' }; }).errors, [], 'la forma corta (abre/cierra) sigue siendo válida');
   });
 
   it('una foto real necesita texto alternativo', () => {
@@ -166,9 +180,33 @@ describe('motor de plantillas', () => {
 });
 
 describe('lector de dimensiones de imagen', () => {
-  it('coincide con el tamaño real de las fotos de la demo', () => {
-    assert.deepEqual(imageSize(join(SRC, 'assets/img/photos/portada.webp')), { width: 1200, height: 1500 });
-    assert.deepEqual(imageSize(join(SRC, 'assets/img/photos/estudio.webp')), { width: 1500, height: 1000 });
+  const dir = mkdtempSync(join(tmpdir(), 'web-img-'));
+  dirs.push(dir);
+  const save = (name, buffer) => { const file = join(dir, name); writeFileSync(file, buffer); return file; };
+
+  it('lee WebP (lossy, lossless y extendido), JPEG y PNG; el navegador confirma las dimensiones de las fotos reales en site.test.mjs', () => {
+    const vp8 = Buffer.alloc(30); vp8.write('RIFF', 0); vp8.writeUInt32LE(22, 4); vp8.write('WEBP', 8); vp8.write('VP8 ', 12); vp8.writeUInt32LE(10, 16);
+    vp8[23] = 0x9d; vp8[24] = 0x01; vp8[25] = 0x2a; vp8.writeUInt16LE(1800, 26); vp8.writeUInt16LE(1200, 28);
+    assert.deepEqual(imageSize(save('lossy.webp', vp8)), { width: 1800, height: 1200 });
+
+    const vp8l = Buffer.alloc(30); vp8l.write('RIFF', 0); vp8l.writeUInt32LE(22, 4); vp8l.write('WEBP', 8); vp8l.write('VP8L', 12); vp8l.writeUInt32LE(10, 16);
+    const [w, h] = [1000 - 1, 1250 - 1];
+    vp8l[20] = 0x2f; vp8l[21] = w & 0xff; vp8l[22] = ((w >> 8) & 0x3f) | ((h & 0x03) << 6); vp8l[23] = (h >> 2) & 0xff; vp8l[24] = (h >> 10) & 0x0f;
+    assert.deepEqual(imageSize(save('lossless.webp', vp8l)), { width: 1000, height: 1250 });
+
+    const vp8x = Buffer.alloc(30); vp8x.write('RIFF', 0); vp8x.writeUInt32LE(22, 4); vp8x.write('WEBP', 8); vp8x.write('VP8X', 12); vp8x.writeUInt32LE(10, 16);
+    vp8x.writeUIntLE(1400 - 1, 24, 3); vp8x.writeUIntLE(1050 - 1, 27, 3);
+    assert.deepEqual(imageSize(save('extended.webp', vp8x)), { width: 1400, height: 1050 });
+
+    const jpg = Buffer.from([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x02, 0x76, 0x04, 0xb0, 0x03, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    assert.deepEqual(imageSize(save('foto.jpg', jpg)), { width: 1200, height: 630 });
+
+    const png = Buffer.alloc(33); Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]).copy(png); png.writeUInt32BE(13, 8); png.write('IHDR', 12); png.writeUInt32BE(180, 16); png.writeUInt32BE(180, 20);
+    assert.deepEqual(imageSize(save('icono.png', png)), { width: 180, height: 180 });
+    assert.throws(() => imageSize(save('raro.gif', Buffer.from('GIF89a................................'))), /Formato de imagen no admitido/);
+  });
+
+  it('coincide con los archivos generados por el proyecto (imagen para compartir e icono)', () => {
     assert.deepEqual(imageSize(join(SRC, 'assets/img/og-image.jpg')), { width: 1200, height: 630 });
     assert.deepEqual(imageSize(join(SRC, 'assets/img/apple-touch-icon.png')), { width: 180, height: 180 });
   });
@@ -194,7 +232,7 @@ describe('plantilla: otro negocio cambiando solo la configuración', () => {
   it('muestra los datos del nuevo negocio: nombre, servicios, horario, contacto y colores', () => {
     const index = html['index.html'].replace(/ /g, ' ');
     for (const expected of ['Peluquería Luna', 'Corte y peinado', '50 min', '24 €', 'Color completo', '2 h', '55 €', 'peluquerialuna/corte-peinado', 'peluquerialuna/color-completo',
-      'Martes a viernes', '10:00 – 20:00', 'Sábados', '9:00 – 14:00', 'Domingo y lunes', 'Cerrado', '+34 951 00 01 11', 'tel:+34951000111', 'https://wa.me/34951000111?text=Hola%2C%20quiero%20pedir%20cita',
+      'Martes a viernes', '10:00 – 14:00', '16:30 – 20:00', 'Sábados', '9:00 – 14:00', 'Domingo y lunes', 'Cerrado', '+34 951 00 01 11', 'tel:+34951000111', 'https://wa.me/34951000111?text=Hola%2C%20quiero%20pedir%20cita',
       'mailto:hola@peluquerialuna.test', 'Plaza de la Constitución, 3, 29005 Málaga', 'Opiniones de clientas.', '--ivory:#FFFFFF', 'data-cal-color="#14121A"']) {
       assert.ok(index.includes(expected), `falta «${expected}»`);
     }
@@ -209,7 +247,7 @@ describe('plantilla: otro negocio cambiando solo la configuración', () => {
     const ld = JSON.parse(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/.exec(html['index.html'])[1]);
     assert.equal(ld['@type'], 'HairSalon');
     assert.equal(ld.address.postalCode, '29005');
-    assert.deepEqual(ld.openingHoursSpecification.map((o) => [o.dayOfWeek.join(), o.opens, o.closes]), [['Tuesday,Wednesday,Thursday,Friday', '10:00', '20:00'], ['Saturday', '09:00', '14:00']]);
+    assert.deepEqual(ld.openingHoursSpecification.map((o) => [o.dayOfWeek.join(), o.opens, o.closes]), [['Tuesday,Wednesday,Thursday,Friday', '10:00', '14:00'], ['Tuesday,Wednesday,Thursday,Friday', '16:30', '20:00'], ['Saturday', '09:00', '14:00']]);
     assert.deepEqual(ld.hasOfferCatalog.itemListElement.map((o) => [o.itemOffered.name, o.price]), [['Corte y peinado', '24'], ['Color completo', '55']]);
     assert.ok(html['index.html'].includes('<link rel="canonical" href="https://www.peluquerialuna.test/">'));
     assert.ok(read(dir, 'sitemap.xml').includes('https://www.peluquerialuna.test/politica-cookies.html'));

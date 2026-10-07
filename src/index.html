@@ -242,7 +242,7 @@
 
         <dl class="hours">
 {{#each horario}}
-          <div><dt>{{etiqueta}}</dt><dd>{{rango}}</dd></div>
+          <div><dt>{{etiqueta}}</dt><dd>{{#if abierto}}{{#each franjas}}<span class="hours__range">{{abre}} – {{cierra}}</span>{{#unless @last}}<span class="sr-only"> y </span>{{/unless}}{{/each}}{{else}}Cerrado{{/if}}</dd></div>
 {{/each}}
         </dl>
         <p class="open-now" id="open-now" data-horario="{{horarioJson}}" aria-live="polite" hidden></p>

@@ -18,8 +18,8 @@ export default {
     email: 'hola@peluquerialuna.test',
   },
   horario: [
-    { dias: ['mar', 'mie', 'jue', 'vie'], etiqueta: 'Martes a viernes', abre: '10:00', cierra: '20:00' },
-    { dias: ['sab'], etiqueta: 'Sábados', abre: '09:00', cierra: '14:00' },
+    { dias: ['mar', 'mie', 'jue', 'vie'], etiqueta: 'Martes a viernes', franjas: [{ abre: '10:00', cierra: '14:00' }, { abre: '16:30', cierra: '20:00' }] },
+    { dias: ['sab'], etiqueta: 'Sábados', abre: '09:00', cierra: '14:00' },   // forma corta: una sola franja
     { dias: ['dom', 'lun'], etiqueta: 'Domingo y lunes', cerrado: true },
   ],
   reservas: {

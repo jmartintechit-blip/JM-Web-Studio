@@ -10,7 +10,14 @@ import { serve } from '../scripts/serve.mjs';
 export const config = await loadConfig();
 
 const duration = (min) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`);   // cálculo independiente del build
-const firstOpen = config.horario.find((h) => !h.cerrado);
+const hhmm = (h) => h.replace(/^0/, '');
+/** Horario de la configuración en la forma que usan los tests (cálculo independiente del build). */
+const schedule = config.horario.map((h) => ({
+  label: h.etiqueta,
+  days: h.dias,
+  closed: Boolean(h.cerrado),
+  ranges: h.cerrado ? [] : (h.franjas || [{ abre: h.abre, cierra: h.cierra }]).map((f) => ({ open: f.abre, close: f.cierra, openText: hhmm(f.abre), closeText: hhmm(f.cierra) })),
+}));
 /** Datos del negocio con la forma que usan los tests, leídos de la configuración. */
 export const business = {
   name: config.negocio.nombre,
@@ -19,7 +26,7 @@ export const business = {
   phoneDisplay: config.contacto.telefono.replace(/^\+34(\d{3})(\d{2})(\d{2})(\d{2})$/, '+34 $1 $2 $3 $4'),
   whatsapp: config.contacto.whatsapp,
   cal: { user: config.reservas.cal.usuario, origin: config.reservas.cal.origen, base: config.reservas.cal.base },
-  hours: { label: firstOpen.etiqueta, open: firstOpen.abre.replace(/^0/, ''), close: firstOpen.cierra.replace(/^0/, '') },
+  schedule,
   services: config.reservas.servicios.map((s) => ({ name: s.nombre, slug: s.slug, duration: duration(s.minutos), minutes: s.minutos, price: s.precio })),
 };
 export const PAGES = ['index.html', 'aviso-legal.html', 'politica-privacidad.html', 'politica-cookies.html', '404.html'];

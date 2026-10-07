@@ -152,8 +152,14 @@ describe('contenido contra los datos reales del negocio', () => {
     await close();
     assert.ok(text.includes(business.name.split(' ')[0]));
     assert.ok(text.includes(business.locality.split(',')[0]));
-    assert.ok(text.includes(`${business.hours.open} – ${business.hours.close}`));
-    assert.ok(text.includes(business.hours.label));
+    for (const row of business.schedule) {
+      assert.ok(text.includes(row.label), `falta la fila de horario «${row.label}»`);
+      for (const range of row.ranges) assert.ok(text.includes(`${range.openText} – ${range.closeText}`), `falta la franja ${range.openText} – ${range.closeText} de «${row.label}»`);
+    }
+    if (business.schedule.some((row) => row.closed)) assert.ok(text.includes('Cerrado'), 'los días cerrados se muestran como «Cerrado»');
+    const first = business.schedule.find((row) => !row.closed);
+    const summary = `${first.label}, ${first.ranges.map((r) => `de ${r.openText} a ${r.closeText}`).join(' y ')}`;
+    assert.ok(text.includes(summary), `el resumen de la portada debería decir «${summary}»`);
     assert.ok(text.includes(business.phoneDisplay));
     assert.ok(tels.length >= 3 && tels.every((t) => t === `tel:${business.phone}`));
   });
@@ -389,34 +395,67 @@ describe('teclado, movimiento reducido y rendimiento', () => {
     assert.deepEqual(state, { photoTransition: '0s', scroll: 'auto', title: '1' });
   });
 
-  it('el indicador "abierto ahora" coincide con el horario en hora de Madrid', async () => {
-    const { tab, close } = await open('index.html', { consent: REJECTED });
-    const shown = await tab.$eval('#open-now', (e) => e.textContent);
-    await close();
-    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Madrid', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
-    const get = (t) => parts.find((p) => p.type === t).value;
-    const minutes = Number(get('hour')) * 60 + Number(get('minute'));
-    const isOpen = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(get('weekday')) && minutes >= 540 && minutes < 1020;
-    assert.equal(shown, isOpen ? 'Abierto ahora, hasta las 17:00' : 'Cerrado ahora');
+  it('el indicador "abierto ahora" coincide con el horario en hora de Madrid, incluida la pausa entre franjas', async () => {
+    // Semana de referencia sin cambio de hora: lunes 12 de octubre de 2026 (CEST, +02:00). Los instantes salen del horario configurado.
+    const DAYS = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'];
+    const toMin = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
+    const shift = (hhmm, min) => { const t = toMin(hhmm) + Math.floor(min); return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`; };
+    const expected = (day, hhmm) => {
+      for (const row of business.schedule) {
+        if (!row.days.includes(day)) continue;
+        const current = row.ranges.find((r) => r.open <= hhmm && hhmm < r.close);
+        if (current) return `Abierto ahora, hasta las ${current.closeText}`;
+      }
+      return 'Cerrado ahora';
+    };
+    const instants = [];
+    for (const row of business.schedule) {
+      const day = row.days[0];
+      const times = new Set(['03:00', '12:00']);
+      row.ranges.forEach((r, i) => {
+        [shift(r.open, -1), r.open, shift(r.open, 1), shift(r.close, -1), r.close, shift(r.close, 1)].forEach((t) => times.add(t));
+        if (row.ranges[i + 1]) times.add(shift(r.close, (toMin(row.ranges[i + 1].open) - toMin(r.close)) / 2));   // mitad de la pausa
+      });
+      for (const t of times) instants.push([day, t]);
+      if (row.days.length > 1) instants.push([row.days[row.days.length - 1], row.ranges[0] ? row.ranges[0].open : '12:00']);
+    }
+    const context = await newContext(browser, { consent: REJECTED });
+    const tab = await context.newPage();
+    await blockExternal(tab, site.base);
+    const wrong = [];
+    for (const [day, hhmm] of instants) {
+      await tab.clock.setFixedTime(new Date(`2026-10-${12 + DAYS.indexOf(day)}T${hhmm}:00+02:00`));
+      await tab.goto(url('index.html'));
+      const shown = await tab.$eval('#open-now', (e) => e.textContent);
+      if (shown !== expected(day, hhmm)) wrong.push(`${day} ${hhmm}: «${shown}» en vez de «${expected(day, hhmm)}»`);
+    }
+    await context.close();
+    assert.ok(instants.length >= 10, `pocos instantes probados (${instants.length})`);
+    assert.deepEqual(wrong, []);
   });
 
-  it('presupuesto de peso: la portada móvil carga poco y las fotografías lejanas se difieren', async () => {
+  it('presupuesto de peso: la primera pantalla móvil carga poco y las fotografías lejanas se difieren', async () => {
     const context = await newContext(browser, { width: 390, height: 844, consent: REJECTED, touch: true });
     const tab = await context.newPage();
-    let bytes = 0;
-    const images = [];
+    const loaded = [];
     tab.on('response', async (r) => {
       const body = await r.body().catch(() => Buffer.alloc(0));
-      bytes += body.length;
-      if (r.request().resourceType() === 'image') images.push(r.url());
+      loaded.push({ type: r.request().resourceType(), file: r.url().split('?')[0].split('/').pop(), bytes: body.length });
     });
     await blockExternal(tab, site.base);
     await tab.goto(url('index.html'), { waitUntil: 'networkidle' });
     await context.close();
-    assert.ok(bytes < 300 * 1024, `la portada pesa ${(bytes / 1024).toFixed(0)} KB sin comprimir`);
-    const photos = images.filter((src) => /\/photos\//.test(src)).map((src) => src.split('/').pop());
-    assert.ok(photos.includes('portada.webp'), 'la foto de portada debe cargar de inmediato');
-    assert.ok(!photos.includes('galeria-3.webp'), `la galería final debe cargarse en diferido (cargadas: ${photos.join(', ')})`);
+    const kb = (list) => list.reduce((sum, x) => sum + x.bytes, 0) / 1024;
+    const hero = config.fotos.portada.archivo;
+    // Lo imprescindible para pintar la primera pantalla: documento, CSS, JS, fuentes y la foto de portada
+    const critical = loaded.filter((x) => x.type !== 'image' || x.file === hero);
+    assert.ok(kb(critical) < 250, `lo imprescindible pesa ${kb(critical).toFixed(0)} KB sin comprimir`);
+    // Chrome puede adelantar algunas fotos en diferido que están cerca del borde de la pantalla; aun así, el total se acota
+    assert.ok(kb(loaded) < 450, `la portada completa carga ${kb(loaded).toFixed(0)} KB sin comprimir`);
+    const photos = loaded.filter((x) => x.type === 'image' && /\.(webp|jpe?g|png)$/.test(x.file)).map((x) => x.file);
+    assert.ok(photos.includes(hero), 'la foto de portada debe cargar de inmediato');
+    const last = config.fotos.galeria[config.fotos.galeria.length - 1].archivo;
+    assert.ok(!photos.includes(last), `la galería final debe cargarse en diferido (cargadas: ${photos.join(', ')})`);
   });
 
   it('las imágenes declaran dimensiones, carga adecuada y marcan los placeholders', async () => {
@@ -425,8 +464,22 @@ describe('teclado, movimiento reducido y rendimiento', () => {
       src: i.getAttribute('src'), w: i.getAttribute('width'), h: i.getAttribute('height'), alt: i.getAttribute('alt'),
       loading: i.getAttribute('loading'), priority: i.getAttribute('fetchpriority'), placeholder: i.hasAttribute('data-placeholder'),
     })));
+    // El navegador decodifica cada foto y confirma que width/height del HTML (leídos del archivo por el build) son los reales
+    const natural = await tab.$$eval('img', (els) => Promise.all(els.map(async (i) => { i.loading = 'eager'; await i.decode(); return [i.getAttribute('src'), i.naturalWidth, i.naturalHeight]; })));
     await close();
     assert.equal(imgs.length, 5, 'portada, estudio y tres de galería');
+    for (const [src, w, h] of natural) {
+      const img = imgs.find((i) => i.src === src);
+      assert.deepEqual([Number(img.w), Number(img.h)], [w, h], `${src}: width/height del HTML no coinciden con la imagen real (${w}×${h})`);
+    }
+    // Los textos alternativos de las fotos son los de la configuración
+    const configured = [config.fotos.portada, config.fotos.estudio, ...config.fotos.galeria];
+    for (const foto of configured) {
+      const img = imgs.find((i) => i.src === `assets/img/photos/${foto.archivo}`);
+      assert.ok(img, `no aparece ${foto.archivo}`);
+      assert.equal(img.alt, foto.alt || '', `alt de ${foto.archivo}`);
+      assert.equal(img.placeholder, Boolean(foto.provisional), `data-placeholder de ${foto.archivo}`);
+    }
     for (const img of imgs) {
       assert.ok(img.w && img.h, `${img.src}: sin width/height (provoca saltos de maquetación)`);
       assert.notEqual(img.alt, null, `${img.src}: falta el atributo alt`);
@@ -437,7 +490,8 @@ describe('teclado, movimiento reducido y rendimiento', () => {
     assert.equal(hero.priority, 'high');
     assert.notEqual(hero.loading, 'lazy');
     for (const img of imgs.filter((i) => i !== hero)) assert.equal(img.loading, 'lazy', `${img.src} debe cargarse en diferido`);
-    console.log(`   (aviso) ${imgs.filter((i) => i.placeholder).length} de ${imgs.length} fotografías son placeholders pendientes de sustituir por fotos reales`);
+    const placeholders = imgs.filter((i) => i.placeholder).length;
+    if (placeholders) console.log(`   (aviso) ${placeholders} de ${imgs.length} fotografías son provisionales y hay que sustituirlas por fotos reales`);
   });
 });
 

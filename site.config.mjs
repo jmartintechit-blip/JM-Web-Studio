@@ -60,9 +60,12 @@ export default {
 
   // ── Horario ──────────────────────────────────────────────────────────────────────────
   // dias: lun, mar, mie, jue, vie, sab, dom. Debe coincidir con la disponibilidad de Cal.com.
+  // Cada fila lleva `franjas` (una o varias en el mismo día, en orden: p. ej. mañana y tarde),
+  // o bien `abre` y `cierra` si solo hay una; o `cerrado: true`.
   horario: [
-    { dias: ['lun', 'mar', 'mie', 'jue', 'vie'], etiqueta: 'Lunes a viernes', abre: '09:00', cierra: '17:00' },
-    { dias: ['sab', 'dom'], etiqueta: 'Sábado y domingo', cerrado: true },
+    { dias: ['lun', 'mar', 'mie', 'jue', 'vie'], etiqueta: 'Lunes a viernes', franjas: [{ abre: '10:00', cierra: '14:00' }, { abre: '17:00', cierra: '20:30' }] },
+    { dias: ['sab'], etiqueta: 'Sábado', franjas: [{ abre: '10:00', cierra: '14:00' }] },
+    { dias: ['dom'], etiqueta: 'Domingo', cerrado: true },
   ],
 
   // ── Servicios y reservas (Cal.com) ───────────────────────────────────────────────────
@@ -121,15 +124,17 @@ export default {
 
   // ── Fotografías ──────────────────────────────────────────────────────────────────────
   // Archivos de src/assets/img/photos/ (WebP, JPG o PNG: el ancho y el alto se leen solos).
-  // provisional: true → imagen de relleno (alt vacío, marcada data-placeholder y el test avisa).
+  // provisional: true marca una imagen de relleno (alt vacío y data-placeholder; el test avisa).
   // Con foto real: provisional:false y un `alt` que la describa.
+  // Las de la demo son fotografías de Unsplash (licencia de Unsplash). En la web de un cliente,
+  // sustitúyelas por las suyas.
   fotos: {
-    portada: { archivo: 'portada.webp', alt: '', provisional: true },      // vertical, 4:5 recomendada
-    estudio: { archivo: 'estudio.webp', alt: '', provisional: true },      // 3:2
+    portada: { archivo: 'portada.webp', alt: 'Manos con manicura semipermanente en tono nude', provisional: false },        // vertical, 4:5
+    estudio: { archivo: 'estudio.webp', alt: 'Técnica de uñas trabajando una manicura de gel', provisional: false },      // 3:2
     galeria: [
-      { archivo: 'galeria-1.webp', alt: '', provisional: true },           // 4:5
-      { archivo: 'galeria-2.webp', alt: '', provisional: true },           // 1:1
-      { archivo: 'galeria-3.webp', alt: '', provisional: true },           // 4:3
+      { archivo: 'galeria-1.webp', alt: 'Aplicación de esmalte durante una manicura', provisional: false },              // 4:5
+      { archivo: 'galeria-2.webp', alt: 'Limpieza facial con mascarilla', provisional: false },                          // 1:1
+      { archivo: 'galeria-3.webp', alt: 'Toalla, crema y tulipanes en la cabina de estética', provisional: false },      // 4:3
     ],
   },
 

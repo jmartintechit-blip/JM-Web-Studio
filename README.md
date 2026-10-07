@@ -38,7 +38,7 @@ Añade `?para=Nombre` a la dirección y la barra de demo se dirige a esa persona
 | Páginas legales | Arriba, la nota *«Página de ejemplo. En tu web irán tus datos reales.»*; los datos del titular aparecen como *Pendiente*. |
 | Google | `noindex, nofollow` en **todas** las páginas, `robots.txt` con `Disallow: /`, sin `sitemap.xml` y **sin datos estructurados** de negocio local. |
 | Vista previa al compartir | `og:title` *«Web de ejemplo · JM Web Studio»*, descripción corta y `og:image` de 1200×630 (≈ 53 KB) hecha a partir de la portada, con URL absoluta. |
-| Servicios y reservas | Exactamente los 5 servicios de abajo, cada uno con su propio calendario de Cal.com. Su disponibilidad (lunes a viernes, de 9:00 a 17:00) coincide con el horario de la web. |
+| Servicios y reservas | Exactamente los 5 servicios de abajo, cada uno con su propio calendario de Cal.com. El horario de la web (lunes a viernes de 10:00 a 14:00 y de 17:00 a 20:30, sábado de 10:00 a 14:00, domingo cerrado) debe coincidir con la disponibilidad de Cal.com. |
 
 | Servicio | Duración | Precio | Calendario de Cal.com |
 | --- | --- | --- | --- |
@@ -58,13 +58,13 @@ Todo lo que no es de este salón vive en `site.config.mjs` y en `src/assets/img/
 2. **Edita [`site.config.mjs`](site.config.mjs)** (cada bloque está comentado):
    - `negocio`: nombre, marca, zona, **dirección** y consulta del mapa.
    - `contacto`: teléfono, WhatsApp y mensaje, correo (vacío = no se muestra).
-   - `horario`: franjas por días. **Debe coincidir con la disponibilidad de Cal.com.**
+   - `horario`: filas de días con una o varias `franjas` (p. ej. mañana y tarde el mismo día), o `cerrado: true`. **Debe coincidir con la disponibilidad de Cal.com.**
    - `reservas`: usuario de Cal.com y la lista de `servicios` (nombre, categoría, minutos, precio y `slug`). Cada servicio abre `cal.com/<usuario>/<slug>`: crea esos eventos en Cal.com con la misma duración.
    - `textos`: titular, bajadas, descripción SEO, textos de *Estudio* y de la ubicación.
    - `resenas`: **solo reseñas reales** (con permiso) o una lista vacía.
    - `colores`: la paleta (el test de contraste avisa si una combinación deja de cumplir WCAG AA).
    - `legal`: titular, NIF y domicilio. Lo que quede vacío se muestra como *Pendiente*.
-3. **Sustituye las fotos** en `src/assets/img/photos/` (ver [Fotografía](#fotografía)) y marca en `fotos` `provisional: false` con su `alt`.
+3. **Sustituye las fotos** de la demo en `src/assets/img/photos/` por las del cliente (ver [Fotografía](#fotografía)) y escribe en `fotos` el `alt` de cada una.
 4. **Regenera la imagen para compartir y los iconos**: `npm run assets` (usa el nombre, el titular, los colores y la foto de portada). Si quieres otro icono de pestaña, cambia `src/assets/img/favicon.svg` antes.
 5. **Desactiva el modo demo**: en `site.config.mjs`, `modoDemo: false` y `sitio.url: 'https://www.minegocio.es'`.
 6. **Comprueba**: `npm run build` imprime avisos de lo que falta (datos legales, fotos provisionales, textos de la demo que sigan en la configuración) y `npm test` verifica contraste, enlaces, SEO y reservas.
@@ -92,11 +92,11 @@ Archivos de `src/assets/img/photos/` (WebP, JPG o PNG; el ancho y el alto se lee
 
 | Clave en `fotos` | Dónde sale | Proporción | Notas |
 | --- | --- | --- | --- |
-| `portada` | Portada (imagen LCP) | Vertical, 4:5 recomendada | Se recorta entre ~2:3 y 1:1 según la pantalla: el motivo, centrado. |
+| `portada` | Portada (imagen LCP) | Vertical, 4:5 recomendada | Se recorta entre ~2:3 y 1:1 según la pantalla: el motivo, centrado. En móvil es una franja ancha y baja; su encuadre vertical se ajusta con `object-position` en `.hero__media img` (`src/assets/css/styles.css`, bloque de ≤ 760 px). |
 | `estudio` | Sección *Estudio* | 3:2 | Foto real del local. |
 | `galeria[0]`, `[1]`, `[2]` | Galería | 4:5, 1:1 y 4:3 | Exactamente tres (el diseño tiene tres huecos). |
 
-**Las cinco fotos actuales son provisionales** (estudios de luz generados por código, sin personas ni productos): hay que sustituirlas por fotografía real con permiso. Con `provisional: true` llevan `alt=""` y `data-placeholder`, y `npm test` muestra un aviso.
+Las cinco fotos de la demo son **fotografías de Unsplash** (ver [Licencias](#licencias)), con su texto alternativo en `fotos`. En la web de un cliente, sustitúyelas por fotos propias del negocio: no presentes fotos de stock como si fueran del local. Si mientras tanto usas una imagen de relleno, márcala con `provisional: true` (lleva `alt=""` y `data-placeholder`, y `npm test` avisa).
 
 ---
 
@@ -122,7 +122,7 @@ src/                       Plantillas HTML y recursos
   assets/js/main.js        Menú, barra de demo y ?para, consentimiento, Cal.com, mapa, barra móvil, «abierto ahora»
   assets/fonts/            Instrument Serif y Hanken Grotesk (woff2, SIL OFL)
   assets/img/              Favicon, icono iOS e imagen para compartir (se regeneran con npm run assets)
-  assets/img/photos/       Fotografías (hoy, placeholders)
+  assets/img/photos/       Fotografías (las de la demo, de Unsplash)
 scripts/
   build.mjs                Compila src/ + configuración a dist/ (demo o producción)
   config.mjs · template.mjs · image-size.mjs   Carga y validación de la configuración, motor de plantillas, tamaño de fotos
@@ -142,12 +142,12 @@ npx playwright install chromium  # solo la primera vez, para los tests
 npm run dev                      # http://localhost:8765 (compila y recompila al guardar src/ o site.config.mjs)
 npm run build                    # genera dist/
 npm run validate                 # compila en modo demo y producción y valida el HTML de ambos
-npm test                         # 132 pruebas (ver abajo)
+npm test                         # 134 pruebas (ver abajo)
 npm run assets                   # regenera og-image.jpg y los iconos desde la configuración
 npm run screenshots              # actualiza docs/screenshots/
 ```
 
-**Pruebas.** Chromium real, cinco anchos (360–1920 px): consola, red y desbordes; enlaces y anclas; SEO y accesibilidad estática; que la web muestre exactamente lo configurado; consentimiento y reservas por servicio (con un doble local de Cal.com); móvil, teclado, movimiento reducido y peso; contraste AA de la paleta de la configuración. Además:
+**Pruebas.** Chromium real, cinco anchos (360–1920 px): consola, red y desbordes; enlaces y anclas; SEO y accesibilidad estática; que la web muestre exactamente lo configurado; consentimiento y reservas por servicio (con un doble local de Cal.com); móvil, teclado, movimiento reducido y peso; el indicador «abierto ahora» con reloj fijo en todas las franjas (incluida la pausa de mediodía); dimensiones reales y textos alternativos de las fotos; contraste AA de la paleta de la configuración. Además:
 
 - **Demo**: texto exacto de la barra y de los mensajes de WhatsApp, `?para=` (inyección de HTML, patrones `$&`, caracteres de control, 60 caracteres, vacío), cierre en `sessionStorage`, contacto sin correo, reseñas y dirección de ejemplo, notas legales, `noindex` + `robots.txt` + sin sitemap ni schema, Open Graph, y la **primera pantalla en 390×844**.
 - **Producción**: sin rastro de la demo, indexable, schema.org coherente con lo que se ve, `robots.txt` y `sitemap.xml`.
@@ -158,10 +158,10 @@ npm run screenshots              # actualiza docs/screenshots/
 
 - Verificado únicamente en Chromium (no en Safari ni en Firefox) y sin lectores de pantalla.
 - El calendario real de Cal.com y el mapa de Google no se pudieron cargar desde el entorno de desarrollo (sin salida a internet); la integración se verifica con un doble de `embed.js`. Los enlaces externos no se han comprobado en vivo. Los eventos de Cal.com y su disponibilidad se verificaron por la API.
-- Las fotos son provisionales y los textos legales, orientativos.
+- Los textos legales son orientativos: que los revise un profesional antes de publicar una web real.
 - La imagen para compartir (`og-image.jpg`) es un archivo: tras cambiar el negocio hay que ejecutar `npm run assets`.
 - No se ha medido con Lighthouse. Peso aproximado de la primera pantalla móvil: unos 175 KB sin comprimir (HTML, CSS, JS, fuentes y foto de portada).
 
 ## Licencias
 
-Sin licencia de código abierto declarada para el código del proyecto. Tipografías *Instrument Serif* y *Hanken Grotesk*: SIL Open Font License 1.1. Fotografías provisionales: generadas por código para este proyecto.
+Sin licencia de código abierto declarada para el código del proyecto. Tipografías *Instrument Serif* y *Hanken Grotesk*: SIL Open Font License 1.1. Fotografías de la demo: de [Unsplash](https://unsplash.com), con la [licencia de Unsplash](https://unsplash.com/license).
