@@ -164,4 +164,4 @@ npm run screenshots              # actualiza docs/screenshots/
 
 ## Licencias
 
-Sin licencia de código abierto declarada para el código del proyecto. Tipografías *Instrument Serif* y *Hanken Grotesk*: SIL Open Font License 1.1. Fotografías de la demo: de [Unsplash](https://unsplash.com), con la [licencia de Unsplash](https://unsplash.com/license).
+El código del proyecto se distribuye con la [licencia MIT](LICENSE). No cubre los recursos de terceros: tipografías *Instrument Serif* y *Hanken Grotesk* (SIL Open Font License 1.1) y las fotografías de la demo, de [Unsplash](https://unsplash.com), con la [licencia de Unsplash](https://unsplash.com/license).
