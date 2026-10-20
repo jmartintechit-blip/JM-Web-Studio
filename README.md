@@ -7,8 +7,8 @@ Este repositorio contiene **dos cosas en una**:
 
 | Escritorio | Móvil (primera pantalla) |
 | --- | --- |
-| ![Portada en escritorio](docs/screenshots/desktop-hero.jpg) | ![Primera pantalla en móvil](docs/screenshots/mobile-hero.jpg) |
-| ![Servicios y precios](docs/screenshots/desktop-servicios.jpg) | ![Barra de demo personalizada con ?para](docs/screenshots/mobile-hero-para.jpg) |
+| ![Portada en escritorio](docs/images/desktop-hero.jpg) | ![Primera pantalla en móvil](docs/images/mobile-hero.jpg) |
+| ![Servicios y precios](docs/images/desktop-servicios.jpg) | ![Barra de demo personalizada con ?para](docs/images/mobile-hero-para.jpg) |
 
 ---
 
@@ -129,7 +129,7 @@ scripts/
   dev.mjs · serve.mjs      Servidor local con recompilación (también al cambiar site.config.mjs)
   brand-assets.mjs         Regenera favicon PNG, icono iOS e imagen Open Graph desde la configuración
   validate.mjs             Valida el HTML compilado en modo demo y en modo producción
-  screenshots.mjs          Regenera docs/screenshots/
+  screenshots.mjs          Regenera docs/images/
 tests/                     Pruebas automáticas (Node test runner + Playwright)
 netlify.toml · .env.example · .gitignore · .htmlvalidate.json
 ```
@@ -144,7 +144,7 @@ npm run build                    # genera dist/
 npm run validate                 # compila en modo demo y producción y valida el HTML de ambos
 npm test                         # 134 pruebas (ver abajo)
 npm run assets                   # regenera og-image.jpg y los iconos desde la configuración
-npm run screenshots              # actualiza docs/screenshots/
+npm run screenshots              # actualiza docs/images/
 ```
 
 **Pruebas.** Chromium real, cinco anchos (360–1920 px): consola, red y desbordes; enlaces y anclas; SEO y accesibilidad estática; que la web muestre exactamente lo configurado; consentimiento y reservas por servicio (con un doble local de Cal.com); móvil, teclado, movimiento reducido y peso; el indicador «abierto ahora» con reloj fijo en todas las franjas (incluida la pausa de mediodía); dimensiones reales y textos alternativos de las fotos; contraste AA de la paleta de la configuración. Además:

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Genera las capturas de docs/screenshots/ a partir de la web real compilada.
+ * Genera las capturas de docs/images/ a partir de la web real compilada, con datos de contacto ficticios
+ * (el teléfono real del autor no aparece en ninguna imagen publicada) y la imagen para redes sociales (1280x640).
  * Requiere Playwright con Chromium (npx playwright install chromium).
  */
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
@@ -11,8 +12,15 @@ import { build } from './build.mjs';
 import { loadConfig } from './config.mjs';
 import { serve } from './serve.mjs';
 
-const OUT = new URL('../docs/screenshots/', import.meta.url).pathname;
-const cfg = await loadConfig();
+const OUT = new URL('../docs/images/', import.meta.url).pathname;
+const real = await loadConfig();
+// Contacto ficticio solo para las capturas: la configuración real no se modifica.
+const FICTICIO = '34600000000';
+const cfg = {
+  ...real,
+  contacto: { ...real.contacto, telefono: `+${FICTICIO}`, whatsapp: FICTICIO },
+  demo: { ...real.demo, whatsapp: FICTICIO },
+};
 const dist = mkdtempSync(join(tmpdir(), 'web-shots-'));
 const distProd = mkdtempSync(join(tmpdir(), 'web-shots-prod-'));
 await build({ config: { ...cfg, modoDemo: true }, siteUrl: 'https://example.com', outDir: dist });
@@ -42,7 +50,7 @@ async function capture(file, { width, height, mobile = false, scrollTo, fullPage
   await page.evaluate(() => document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-in')));
   if (scrollTo) await page.evaluate((selector) => document.querySelector(selector).scrollIntoView(), scrollTo);
   await page.waitForTimeout(1300);
-  await page.screenshot({ path: join(OUT, file), fullPage, type: 'jpeg', quality: 86 });
+  await page.screenshot({ path: join(OUT, file), fullPage, ...(file.endsWith('.png') ? { type: 'png' } : { type: 'jpeg', quality: 86 }) });
   await context.close();
 }
 
@@ -53,6 +61,9 @@ await capture('desktop-produccion.jpg', { width: 1440, height: 900, origin: base
 await capture('mobile-hero.jpg', { width: 390, height: 844, mobile: true });
 await capture('mobile-hero-para.jpg', { width: 390, height: 844, mobile: true, query: '?para=Beauty%20Lola' });
 await capture('mobile-pagina-completa.jpg', { width: 390, height: 844, mobile: true, fullPage: true });
+
+// Imagen para compartir el repositorio (Settings > Social preview): 1280x640, PNG.
+await capture('social-preview.png', { width: 1280, height: 640 });
 
 await browser.close();
 server.close();
