@@ -18,6 +18,11 @@
  * Después de cambiar este archivo: `npm run build` (o `npm run dev` para verlo en local).
  * Si cambia la foto de portada o el nombre: `npm run assets` regenera la imagen para compartir.
  */
+// WhatsApp de la persona que enseña la demo (solo dígitos, con prefijo de país). No se guarda en el repositorio:
+// se define con la variable de entorno DEMO_WHATSAPP (p. ej. en Netlify o en un archivo .env local).
+// Sin ella se usa un número ficticio, así que la demo publicada no escribe a nadie hasta que se configure.
+const DEMO_WHATSAPP = (process.env.DEMO_WHATSAPP || '').replace(/\D/g, '') || '34600000000';
+
 export default {
   modoDemo: true,
 
@@ -50,8 +55,8 @@ export default {
 
   // ── Contacto ─────────────────────────────────────────────────────────────────────────
   contacto: {
-    telefono: '+34624293129',   // formato internacional, sin espacios
-    whatsapp: '34624293129',    // solo dígitos, con prefijo de país
+    telefono: `+${DEMO_WHATSAPP}`,   // formato internacional, sin espacios
+    whatsapp: DEMO_WHATSAPP,    // solo dígitos, con prefijo de país
     // Mensaje que se prerrellena al pulsar WhatsApp en una web de producción.
     // (En modo demo se usa demo.whatsappSalon, para que el botón escriba al autor de la demo.)
     whatsappTexto: 'Hola, escribo desde vuestra web. Me gustaría pedir información.',
@@ -168,16 +173,16 @@ export default {
   // ── Solo modoDemo: true ──────────────────────────────────────────────────────────────
   demo: {
     autor: 'JM Web Studio',
-    whatsapp: '34624293129',                 // WhatsApp del autor de la demo (barra de demo)
+    whatsapp: DEMO_WHATSAPP,                 // WhatsApp del autor de la demo (barra de demo)
     // Barra de demo. Con ?para=Nombre se usa el segundo par de textos ({nombre} = nombre, máx. 60 caracteres).
     mensaje: 'Web de ejemplo de JM Web Studio.',
     pregunta: '¿Quieres una así para tu salón?',
     mensajePara: 'Propuesta para {nombre}: así quedaría tu web.',
     preguntaPara: '¿La quieres?',
     // Mensaje de WhatsApp de la barra de demo (con ?para se añade " (Nombre)").
-    whatsappBarra: 'Hola Juan, he visto la web de ejemplo y me interesa para mi salón',
+    whatsappBarra: 'Hola, he visto la web de ejemplo y me interesa para mi salón',
     // Mensaje que prerrellenan los botones de WhatsApp del «salón» (también escriben al autor de la demo).
-    whatsappSalon: 'Hola Juan, he probado el botón de WhatsApp de la web de ejemplo 😊',
+    whatsappSalon: 'Hola, he probado el botón de WhatsApp de la web de ejemplo 😊',
     // Vista previa al compartir el enlace (WhatsApp, redes).
     ogTitulo: 'Web de ejemplo · JM Web Studio',
     ogDescripcion: 'Así quedaría la web de tu salón: diseño a medida y reservas online. Demo con un salón ficticio de Sevilla.',

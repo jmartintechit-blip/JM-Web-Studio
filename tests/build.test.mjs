@@ -104,7 +104,7 @@ describe('build con modoDemo: false (producción)', () => {
   it('no deja rastro de la demo', () => {
     for (const page of PAGES) {
       const html = read(dir, page);
-      for (const trace of ['demo-bar', 'JM Web Studio', 'Reseñas de ejemplo', 'Página de ejemplo', 'Dirección de ejemplo', 'Hola Juan']) assert.ok(!html.includes(trace), `${page}: contiene «${trace}»`);
+      for (const trace of ['demo-bar', 'JM Web Studio', 'Reseñas de ejemplo', 'Página de ejemplo', 'Dirección de ejemplo', 'he visto la web de ejemplo']) assert.ok(!html.includes(trace), `${page}: contiene «${trace}»`);
     }
   });
 });
@@ -141,7 +141,7 @@ describe('validación de la configuración y del entorno', () => {
       c.reservas.servicios[1].minutos = 0;
       c.reservas.servicios[2].precio = '18';
       c.horario[0].franjas[0].abre = '9h';
-      c.contacto.telefono = '624 29 31 29';
+      c.contacto.telefono = '600 00 00 00';
       c.fotos.portada.archivo = 'no-existe.webp';
       c.colores.tinta = 'negro';
     });
@@ -220,7 +220,7 @@ describe('plantilla: otro negocio cambiando solo la configuración', () => {
   it('no queda ningún dato de la demo (nombre, zona, teléfono, Cal.com, servicios, reseñas, dirección)', () => {
     const traces = [
       config.negocio.nombre, config.negocio.marca, 'Triana', 'Sevilla', config.negocio.direccion.calle, config.contacto.telefono, config.contacto.whatsapp,
-      config.contacto.telefono.replace(/^\+34(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4'), config.reservas.cal.usuario, 'JM Web Studio', 'Hola Juan',
+      config.contacto.telefono.replace(/^\+34(\d{3})(\d{2})(\d{2})(\d{2})$/, '$1 $2 $3 $4'), config.reservas.cal.usuario, 'JM Web Studio', 'he visto la web de ejemplo',
       ...config.reservas.servicios.flatMap((s) => [s.nombre, s.slug]), ...config.resenas.map((r) => r.nombre), config.demo.pregunta,
     ];
     for (const [page, text] of Object.entries(html)) {

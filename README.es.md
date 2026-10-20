@@ -150,7 +150,7 @@ Los servicios reservables de la demo son: manicura semipermanente (45 min, 18 �
 - Los textos legales son orientativos: que los revise un profesional antes de publicar una web real.
 - La imagen para compartir (`og-image.jpg`) es un archivo: ejecuta `npm run assets` tras cambiar el negocio.
 - No se ha ejecutado Lighthouse.
-- El teléfono de `site.config.mjs` es el contacto de WhatsApp del autor de la demo; sustitúyelo al reutilizar la plantilla.
+- El número de contacto de la demo no se guarda en el repositorio: define la variable de entorno `DEMO_WHATSAPP` (dígitos con prefijo de país, p. ej. en Netlify) o la demo usará un número ficticio.
 
 ## Hoja de ruta
 

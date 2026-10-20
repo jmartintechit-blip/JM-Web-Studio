@@ -150,7 +150,7 @@ The demo bookable services are: semi-permanent manicure (45 min, €18), gel nai
 - The legal texts are indicative: have a professional review them before publishing a real site.
 - The share image (`og-image.jpg`) is a file: run `npm run assets` after changing the business.
 - Lighthouse has not been run.
-- The phone number in `site.config.mjs` is the demo author's WhatsApp contact; replace it when you reuse the template.
+- The demo's contact number is not stored in the repository: set the `DEMO_WHATSAPP` environment variable (digits with country code, e.g. in Netlify) or the demo falls back to a fictitious number.
 
 ## Roadmap
 

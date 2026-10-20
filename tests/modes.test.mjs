@@ -6,9 +6,9 @@ import { PAGES, SITE_URL, blockExternal, business, config, launch, newContext, s
 
 const REJECTED = { cal: false, maps: false };
 const BAR_TEXT = 'Web de ejemplo de JM Web Studio. ¿Quieres una así para tu salón?';
-const BAR_WA = 'Hola Juan, he visto la web de ejemplo y me interesa para mi salón';
-const SALON_WA = 'Hola Juan, he probado el botón de WhatsApp de la web de ejemplo 😊';
-const MY_WHATSAPP = '34624293129';
+const BAR_WA = 'Hola, he visto la web de ejemplo y me interesa para mi salón';
+const SALON_WA = 'Hola, he probado el botón de WhatsApp de la web de ejemplo 😊';
+const MY_WHATSAPP = config.demo.whatsapp;
 
 let demo;
 let prod;
@@ -108,7 +108,7 @@ describe('modoDemo: true · contacto, honestidad y Google', () => {
       assert.ok(link.href.startsWith(`https://wa.me/${MY_WHATSAPP}?text=`), link.href);
       assert.equal(decodeText(link.href), link.inBar ? BAR_WA : SALON_WA);
     }
-    assert.ok(tels.length >= 3 && tels.every((t) => t === 'tel:+34624293129'));
+    assert.ok(tels.length >= 3 && tels.every((t) => t === `tel:+${MY_WHATSAPP}`));
     assert.equal(mails, 0, 'sin correo electrónico');
     for (const page of PAGES) assert.ok(!readFileSync(join(demo.outDir, page), 'utf8').includes('mailto:'), `${page} contiene mailto:`);
   });
