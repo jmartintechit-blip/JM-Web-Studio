@@ -1,167 +1,170 @@
-# Web de salón de uñas y estética: demostración y plantilla
+# JM Web Studio — salon website demo and template
 
-Este repositorio contiene **dos cosas en una**:
+**English** · [Español](README.es.md)
 
-1. **Una web de demostración** de [JM Web Studio](https://wa.me/34624293129): *Azahar Nail Studio*, un **salón ficticio** de uñas y estética en Triana, Sevilla, hecho con calidad de cliente real para enseñárselo a dueñas de salones. El negocio, la dirección y las reseñas son inventados (y la web lo dice); los servicios y las reservas funcionan de verdad con el Cal.com de la demo.
-2. **Una plantilla**: toda la web (textos, servicios, precios, enlaces de Cal.com, contacto, horario, dirección, colores y datos legales) sale de **un solo archivo, [`site.config.mjs`](site.config.mjs)**. Para la web de un cliente se cambia ese archivo y las fotos; con `modoDemo: false` queda lista para producción.
+[![CI](https://github.com/jmartintechit-blip/JM-Web-Studio/actions/workflows/ci.yml/badge.svg)](https://github.com/jmartintechit-blip/JM-Web-Studio/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Demo](https://img.shields.io/badge/demo-live-brightgreen.svg)](https://jmwebstudiodemo.netlify.app/)
 
-| Escritorio | Móvil (primera pantalla) |
+A fictional nail and beauty salon website that doubles as a reusable template: a small salon can show its services and prices and take online bookings without hiring a developer for every change.
+
+**What this is not.** It is not a real business: *Azahar Nail Studio*, its address and its reviews are invented, and the site says so. It is not a CMS, a shop or a booking engine: there is no backend and no database, and bookings are handled by an embedded [Cal.com](https://cal.com) calendar. The legal pages are templates, not legal advice.
+
+| Desktop | Mobile (first screen) |
 | --- | --- |
-| ![Portada en escritorio](docs/images/desktop-hero.jpg) | ![Primera pantalla en móvil](docs/images/mobile-hero.jpg) |
-| ![Servicios y precios](docs/images/desktop-servicios.jpg) | ![Barra de demo personalizada con ?para](docs/images/mobile-hero-para.jpg) |
+| ![Desktop home page](docs/images/desktop-hero.jpg) | ![Mobile first screen](docs/images/mobile-hero.jpg) |
+| ![Services and prices](docs/images/desktop-servicios.jpg) | ![Personalised demo bar with ?para](docs/images/mobile-hero-para.jpg) |
 
----
+**Live demo:** <https://jmwebstudiodemo.netlify.app/>. The screenshots above use a fictitious phone number.
 
-## La demostración
+## Why it exists
 
-### Personalizar el enlace con `?para=`
+Small salons usually have either no website or one they cannot edit. This project is a way to show a salon owner a finished, high-quality site for *their* kind of business before asking for anything, and then reuse the same code for the real client:
 
-Añade `?para=Nombre` a la dirección y la barra de demo se dirige a esa persona:
+1. **A demo site** that can be sent as a link, optionally personalised with `?para=Name`.
+2. **A template**: every text, service, price, booking link, contact detail, opening hour, colour and legal field comes from one file, [`site.config.mjs`](site.config.mjs). To build a client site you change that file and the photos; with `modoDemo: false` it is ready for production.
 
-| Enlace | Texto de la barra |
-| --- | --- |
-| `https://tu-demo.netlify.app/` | *Web de ejemplo de JM Web Studio. ¿Quieres una así para tu salón?* |
-| `https://tu-demo.netlify.app/?para=Beauty%20Lola` | *Propuesta para Beauty Lola: así quedaría tu web. ¿La quieres?* |
+## Features
 
-- El nombre se inserta **siempre como texto** (nunca como HTML), sin caracteres de control y con un **máximo de 60 caracteres**. Si queda vacío, se usa el texto por defecto.
-- El botón de la barra abre WhatsApp (`wa.me/34624293129`) con *«Hola Juan, he visto la web de ejemplo y me interesa para mi salón»* y, con `?para=`, ese mismo texto + ` (Nombre)`.
-- La barra es fina, se cierra con la ×, y el cierre se recuerda durante la sesión (`sessionStorage`).
-- En una captura de **móvil (390×844) sin scroll** se ven la barra de demo, el nombre del salón, una foto grande y el botón *Reservar cita*, incluso con el banner de cookies abierto. Es la captura pensada para mandar por WhatsApp.
+- **One configuration file** for the whole site (business, contact, opening hours, services, texts, reviews, photos, colours, legal data).
+- **Demo mode and production mode** from the same code (see the table below).
+- **Per-service online booking** through Cal.com, loaded only after the visitor gives consent.
+- **Google Maps** also behind a consent gate; cookie banner and legal pages (legal notice, privacy, cookies).
+- **"Open now" indicator** computed from the configured opening hours, including split shifts and a midday break.
+- **Personalised demo link** with `?para=Name` (the name is always inserted as text, never as HTML, capped at 60 characters).
+- **Mobile-first first screen**: demo bar, salon name, large photo and the *Book* button are visible without scrolling at 390×844.
+- **Accessibility and SEO checks** in the test suite, including WCAG AA contrast of the configured palette.
+- **Self-hosted fonts** (no font CDN) and a static build with no runtime dependencies.
 
-### Qué es de ejemplo y cómo se avisa
+### Demo mode vs production mode
 
-| Elemento | Qué hace la demo |
-| --- | --- |
-| Botón de WhatsApp del «salón» | Escribe al autor de la demo (`+34 624 29 31 29`) con *«Hola Juan, he probado el botón de WhatsApp de la web de ejemplo 😊»*. El teléfono (`tel:`) es el mismo. No hay correo electrónico. |
-| Reseñas | Tres reseñas inventadas, con la nota *«Reseñas de ejemplo»* en letra pequeña debajo. |
-| Dirección | Ficticia (no corresponde a ningún negocio real), marcada *«Dirección de ejemplo»*. El mapa apunta al barrio, no a la dirección. |
-| Páginas legales | Arriba, la nota *«Página de ejemplo. En tu web irán tus datos reales.»*; los datos del titular aparecen como *Pendiente*. |
-| Google | `noindex, nofollow` en **todas** las páginas, `robots.txt` con `Disallow: /`, sin `sitemap.xml` y **sin datos estructurados** de negocio local. |
-| Vista previa al compartir | `og:title` *«Web de ejemplo · JM Web Studio»*, descripción corta y `og:image` de 1200×630 (≈ 53 KB) hecha a partir de la portada, con URL absoluta. |
-| Servicios y reservas | Exactamente los 5 servicios de abajo, cada uno con su propio calendario de Cal.com. El horario de la web (lunes a viernes de 10:00 a 14:00 y de 17:00 a 20:30, sábado de 10:00 a 14:00, domingo cerrado) debe coincidir con la disponibilidad de Cal.com. |
-
-| Servicio | Duración | Precio | Calendario de Cal.com |
-| --- | --- | --- | --- |
-| Manicura semipermanente | 45 min | 18 € | `jmwebstudio/manicura-semipermanente` |
-| Uñas de gel | 90 min | 35 € | `jmwebstudio/unas-gel` |
-| Relleno de gel | 75 min | 28 € | `jmwebstudio/relleno-gel` |
-| Pedicura semipermanente | 60 min | 25 € | `jmwebstudio/pedicura-semipermanente` |
-| Limpieza facial | 45 min | 30 € | `jmwebstudio/limpieza-facial` |
-
----
-
-## Crear la web de un cliente nuevo
-
-Todo lo que no es de este salón vive en `site.config.mjs` y en `src/assets/img/photos/`. No hay que tocar HTML, CSS ni JavaScript.
-
-1. **Copia el proyecto** (clona o usa el repositorio como plantilla) e instala: `npm install`.
-2. **Edita [`site.config.mjs`](site.config.mjs)** (cada bloque está comentado):
-   - `negocio`: nombre, marca, zona, **dirección** y consulta del mapa.
-   - `contacto`: teléfono, WhatsApp y mensaje, correo (vacío = no se muestra).
-   - `horario`: filas de días con una o varias `franjas` (p. ej. mañana y tarde el mismo día), o `cerrado: true`. **Debe coincidir con la disponibilidad de Cal.com.**
-   - `reservas`: usuario de Cal.com y la lista de `servicios` (nombre, categoría, minutos, precio y `slug`). Cada servicio abre `cal.com/<usuario>/<slug>`: crea esos eventos en Cal.com con la misma duración.
-   - `textos`: titular, bajadas, descripción SEO, textos de *Estudio* y de la ubicación.
-   - `resenas`: **solo reseñas reales** (con permiso) o una lista vacía.
-   - `colores`: la paleta (el test de contraste avisa si una combinación deja de cumplir WCAG AA).
-   - `legal`: titular, NIF y domicilio. Lo que quede vacío se muestra como *Pendiente*.
-3. **Sustituye las fotos** de la demo en `src/assets/img/photos/` por las del cliente (ver [Fotografía](#fotografía)) y escribe en `fotos` el `alt` de cada una.
-4. **Regenera la imagen para compartir y los iconos**: `npm run assets` (usa el nombre, el titular, los colores y la foto de portada). Si quieres otro icono de pestaña, cambia `src/assets/img/favicon.svg` antes.
-5. **Desactiva el modo demo**: en `site.config.mjs`, `modoDemo: false` y `sitio.url: 'https://www.minegocio.es'`.
-6. **Comprueba**: `npm run build` imprime avisos de lo que falta (datos legales, fotos provisionales, textos de la demo que sigan en la configuración) y `npm test` verifica contraste, enlaces, SEO y reservas.
-7. **Publica** en Netlify (ver abajo) y asocia el dominio.
-
-### Qué cambia con `modoDemo`
-
-| | `modoDemo: true` (demo) | `modoDemo: false` (producción) |
+| | `modoDemo: true` (demo) | `modoDemo: false` (production) |
 | --- | --- | --- |
-| Barra de demo y `?para=` | Sí | No existen |
-| «Reseñas de ejemplo», «Dirección de ejemplo», notas de «Página de ejemplo» | Sí | No |
-| WhatsApp del salón | Escribe al autor de la demo | Escribe al negocio (`contacto.whatsappTexto`) |
-| `<meta name="robots">` | `noindex, nofollow` en todas las páginas | Ninguna (la 404 conserva `noindex`) |
-| `robots.txt` | `Disallow: /` | `Allow: /` + enlace al sitemap |
-| `sitemap.xml` | No se genera | Se genera |
-| Datos estructurados (schema.org) | Ninguno | Del negocio local, generados desde la configuración |
-| Título y descripción al compartir | `demo.ogTitulo` y `demo.ogDescripcion` | `textos.titulo` y `textos.descripcionCorta` |
-| URL pública | `SITE_URL` / `URL` de Netlify | `sitio.url` (obligatoria) |
+| Demo bar and `?para=` | Yes | Not generated |
+| "Sample reviews", "Sample address", "Sample page" notes | Yes | No |
+| Salon WhatsApp button | Writes to the demo author | Writes to the business (`contacto.whatsappTexto`) |
+| `<meta name="robots">` | `noindex, nofollow` on every page | None (the 404 page keeps `noindex`) |
+| `robots.txt` | `Disallow: /` | `Allow: /` plus sitemap link |
+| `sitemap.xml` | Not generated | Generated |
+| Structured data (schema.org) | None | Local-business data built from the configuration |
+| Share preview title/description | `demo.ogTitulo`, `demo.ogDescripcion` | `textos.titulo`, `textos.descripcionCorta` |
+| Public URL | `SITE_URL` / Netlify `URL` | `sitio.url` (required) |
 
-Con `modoDemo: false` el build **falla** si faltan datos imprescindibles (URL del sitio, dirección completa) y **avisa** de lo que sigue pendiente. El texto de las páginas legales es orientativo: que lo revise un profesional antes de publicar.
+With `modoDemo: false` the build **fails** if essential data is missing (site URL, full address) and **warns** about anything still pending.
 
-### Fotografía
+## Architecture
 
-Archivos de `src/assets/img/photos/` (WebP, JPG o PNG; el ancho y el alto se leen solos). Reemplaza el archivo manteniendo el nombre o cambia `archivo` en `fotos`.
-
-| Clave en `fotos` | Dónde sale | Proporción | Notas |
-| --- | --- | --- | --- |
-| `portada` | Portada (imagen LCP) | Vertical, 4:5 recomendada | Se recorta entre ~2:3 y 1:1 según la pantalla: el motivo, centrado. En móvil es una franja ancha y baja; su encuadre vertical se ajusta con `object-position` en `.hero__media img` (`src/assets/css/styles.css`, bloque de ≤ 760 px). |
-| `estudio` | Sección *Estudio* | 3:2 | Foto real del local. |
-| `galeria[0]`, `[1]`, `[2]` | Galería | 4:5, 1:1 y 4:3 | Exactamente tres (el diseño tiene tres huecos). |
-
-Las cinco fotos de la demo son **fotografías de Unsplash** (ver [Licencias](#licencias)), con su texto alternativo en `fotos`. En la web de un cliente, sustitúyelas por fotos propias del negocio: no presentes fotos de stock como si fueran del local. Si mientras tanto usas una imagen de relleno, márcala con `provisional: true` (lleva `alt=""` y `data-placeholder`, y `npm test` avisa).
-
----
-
-## Publicar en Netlify
-
-**La carpeta que se publica es `dist/`.** Se genera con `node scripts/build.mjs` (sin dependencias) a partir de `src/` + `site.config.mjs`, no se guarda en git y `netlify.toml` ya lo configura (`command = "node scripts/build.mjs"`, `publish = "dist"`). Netlify aporta la variable `URL`, así que en modo demo no hace falta definir nada. En producción manda `sitio.url`.
-
-Caché y cabeceras de seguridad: `netlify.toml`. CSS, JS y fuentes se cachean un año; las imágenes se revalidan en cada visita, para poder sustituir las fotos sin que quede la antigua. No hay `Content-Security-Policy` porque el calendario de Cal.com no se pudo probar contra una política concreta.
-
----
-
-## Referencia técnica
-
-**Estructura**
-
-```
-site.config.mjs            ÚNICO archivo de datos del negocio (modoDemo, servicios, contacto, textos, colores, legal, fotos…)
-src/                       Plantillas HTML y recursos
-  index.html               Portada (plantilla)
-  aviso-legal.html · politica-privacidad.html · politica-cookies.html · 404.html
-  _partials/               Trozos comunes (cabecera, pie, datos del titular…); no se publican
-  assets/css/styles.css    Componentes, secciones y responsive (los colores salen de la configuración)
-  assets/js/main.js        Menú, barra de demo y ?para, consentimiento, Cal.com, mapa, barra móvil, «abierto ahora»
-  assets/fonts/            Instrument Serif y Hanken Grotesk (woff2, SIL OFL)
-  assets/img/              Favicon, icono iOS e imagen para compartir (se regeneran con npm run assets)
-  assets/img/photos/       Fotografías (las de la demo, de Unsplash)
-scripts/
-  build.mjs                Compila src/ + configuración a dist/ (demo o producción)
-  config.mjs · template.mjs · image-size.mjs   Carga y validación de la configuración, motor de plantillas, tamaño de fotos
-  dev.mjs · serve.mjs      Servidor local con recompilación (también al cambiar site.config.mjs)
-  brand-assets.mjs         Regenera favicon PNG, icono iOS e imagen Open Graph desde la configuración
-  validate.mjs             Valida el HTML compilado en modo demo y en modo producción
-  screenshots.mjs          Regenera docs/images/
-tests/                     Pruebas automáticas (Node test runner + Playwright)
-netlify.toml · .env.example · .gitignore · .htmlvalidate.json
+```mermaid
+flowchart LR
+    CFG["site.config.mjs<br/>(single source of data)"] --> BUILD
+    SRC["src/<br/>templates, partials,<br/>CSS, JS, fonts, photos"] --> BUILD
+    BUILD["scripts/build.mjs<br/>config validation +<br/>template engine"] --> DIST["dist/<br/>static site"]
+    DIST --> NETLIFY["Netlify<br/>(publishes dist/)"]
+    NETLIFY -. "after consent" .-> CAL["Cal.com<br/>booking embed"]
+    NETLIFY -. "after consent" .-> MAPS["Google Maps<br/>embed"]
+    DIST --> VALIDATE["npm run validate<br/>HTML validation<br/>(demo + production)"]
+    DIST --> TESTS["npm test<br/>Playwright + Node test runner"]
+    CI["GitHub Actions"] --> VALIDATE
+    CI --> TESTS
 ```
 
-**Comandos** (Node.js ≥ 20.12)
+The build is a small custom static-site generator (`{{x}}`, `{{{raw}}}`, `#if`, `#unless`, `#each`, partials) with no runtime dependencies. The only folder that is published is `dist/`.
+
+## Technologies
+
+| Area | Technology |
+| --- | --- |
+| Site | Plain HTML, CSS and JavaScript (no framework) |
+| Build | Node.js ≥ 20.12, custom template engine (`scripts/template.mjs`) |
+| Booking | [Cal.com](https://cal.com) embed |
+| Hosting | Netlify (`netlify.toml`) |
+| Browser tests | Playwright 1.56.1 (Chromium) |
+| Test runner | Node.js built-in test runner |
+| HTML validation | html-validate |
+| CI | GitHub Actions, Dependabot |
+| Fonts | Instrument Serif and Hanken Grotesk (SIL OFL 1.1), self-hosted |
+
+## Quick start
 
 ```bash
-npm install                      # herramientas de desarrollo
-npx playwright install chromium  # solo la primera vez, para los tests
-npm run dev                      # http://localhost:8765 (compila y recompila al guardar src/ o site.config.mjs)
-npm run build                    # genera dist/
-npm run validate                 # compila en modo demo y producción y valida el HTML de ambos
-npm test                         # 134 pruebas (ver abajo)
-npm run assets                   # regenera og-image.jpg y los iconos desde la configuración
-npm run screenshots              # actualiza docs/images/
+git clone https://github.com/jmartintechit-blip/JM-Web-Studio.git && cd JM-Web-Studio
+npm install
+npm run dev        # http://localhost:8765
 ```
 
-**Pruebas.** Chromium real, cinco anchos (360–1920 px): consola, red y desbordes; enlaces y anclas; SEO y accesibilidad estática; que la web muestre exactamente lo configurado; consentimiento y reservas por servicio (con un doble local de Cal.com); móvil, teclado, movimiento reducido y peso; el indicador «abierto ahora» con reloj fijo en todas las franjas (incluida la pausa de mediodía); dimensiones reales y textos alternativos de las fotos; contraste AA de la paleta de la configuración. Además:
+Other commands:
 
-- **Demo**: texto exacto de la barra y de los mensajes de WhatsApp, `?para=` (inyección de HTML, patrones `$&`, caracteres de control, 60 caracteres, vacío), cierre en `sessionStorage`, contacto sin correo, reseñas y dirección de ejemplo, notas legales, `noindex` + `robots.txt` + sin sitemap ni schema, Open Graph, y la **primera pantalla en 390×844**.
-- **Producción**: sin rastro de la demo, indexable, schema.org coherente con lo que se ve, `robots.txt` y `sitemap.xml`.
-- **Plantilla**: un negocio de prueba completamente distinto (`tests/fixtures/otro-negocio.config.mjs`) se compila sin que quede ni un dato de la demo.
-- **Build**: validación de la configuración, motor de plantillas y lector de dimensiones de imagen.
+```bash
+npx playwright install chromium  # first time only, needed for the tests
+npm run build                    # generates dist/ (needs SITE_URL locally in demo mode)
+npm run validate                 # builds in demo and production mode and validates the HTML of both
+npm test                         # full test suite
+npm run assets                   # regenerates the share image and icons from the configuration
+npm run screenshots              # regenerates docs/images/ (with a fictitious phone number)
+```
 
-## Límites conocidos
+### Create a site for a new client
 
-- Verificado únicamente en Chromium (no en Safari ni en Firefox) y sin lectores de pantalla.
-- El calendario real de Cal.com y el mapa de Google no se pudieron cargar desde el entorno de desarrollo (sin salida a internet); la integración se verifica con un doble de `embed.js`. Los enlaces externos no se han comprobado en vivo. Los eventos de Cal.com y su disponibilidad se verificaron por la API.
-- Los textos legales son orientativos: que los revise un profesional antes de publicar una web real.
-- La imagen para compartir (`og-image.jpg`) es un archivo: tras cambiar el negocio hay que ejecutar `npm run assets`.
-- No se ha medido con Lighthouse. Peso aproximado de la primera pantalla móvil: unos 175 KB sin comprimir (HTML, CSS, JS, fuentes y foto de portada).
+Everything that is not specific to this salon lives in `site.config.mjs` and `src/assets/img/photos/`. No HTML, CSS or JavaScript needs to change.
 
-## Licencias
+1. Copy the project (clone it or use the repository as a template) and run `npm install`.
+2. Edit [`site.config.mjs`](site.config.mjs); every block is commented: `negocio` (name, brand, address, map query), `contacto`, `horario` (opening hours; **must match Cal.com availability**), `reservas` (Cal.com user and the list of services with minutes, price and slug), `textos`, `resenas` (**only real reviews** with permission, or an empty list), `colores`, `legal`.
+3. Replace the demo photos in `src/assets/img/photos/` with the client's and write each photo's `alt` text in `fotos`. Do not present stock photos as the client's premises.
+4. Run `npm run assets` to regenerate the share image and icons.
+5. Set `modoDemo: false` and `sitio.url: 'https://www.example.com'`.
+6. Run `npm run build` (it prints warnings for anything missing) and `npm test`.
+7. Publish on Netlify (`publish = "dist"`, `command = "node scripts/build.mjs"` are already in `netlify.toml`).
 
-El código del proyecto se distribuye con la [licencia MIT](LICENSE). No cubre los recursos de terceros: tipografías *Instrument Serif* y *Hanken Grotesk* (SIL Open Font License 1.1) y las fotografías de la demo, de [Unsplash](https://unsplash.com), con la [licencia de Unsplash](https://unsplash.com/license).
+The demo bookable services are: semi-permanent manicure (45 min, €18), gel nails (90 min, €35), gel refill (75 min, €28), semi-permanent pedicure (60 min, €25) and facial cleansing (45 min, €30). Each one opens its own Cal.com event.
+
+## Tests and quality
+
+`npm test` runs **134 tests in 19 suites** (all passing at the time of writing; the same checks run in CI on every push to `main` and on pull requests). They run in real Chromium at five widths (360–1920 px) and cover:
+
+- console errors, failed requests and horizontal overflow;
+- links and anchors; static SEO and accessibility checks; WCAG AA contrast of the configured palette;
+- that the page shows exactly what is configured, including per-service booking and consent (against a local stand-in for Cal.com's `embed.js`);
+- mobile layout, keyboard use, reduced motion and page weight (critical resources under 250 KB, first load under 450 KB, uncompressed);
+- the "open now" indicator with a fixed clock across every opening-hours slot;
+- demo mode: exact bar and WhatsApp texts, `?para=` edge cases (HTML injection, control characters, 60-character limit, empty value), `noindex`, `robots.txt`, no sitemap or structured data, Open Graph, and the first screen at 390×844;
+- production mode: no trace of the demo, indexable, schema.org consistent with the visible content, `robots.txt` and `sitemap.xml`;
+- template mode: a completely different test business (`tests/fixtures/otro-negocio.config.mjs`) builds without any leftover demo data.
+
+`npm run validate` additionally validates the compiled HTML of both modes with html-validate.
+
+## Security
+
+- No backend, database or user accounts: the output is static files.
+- Third-party content (Cal.com, Google Maps) loads only after explicit consent.
+- The `?para=` value is inserted as text, never as HTML.
+- Security headers are set in `netlify.toml` (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`).
+- GitHub secret scanning with push protection is enabled; Dependabot checks npm packages and GitHub Actions weekly.
+- To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
+## Known limitations
+
+- Verified only in Chromium (not Safari or Firefox) and without screen readers.
+- The real Cal.com calendar and the Google map could not be loaded from the development environment (no internet access there); the integration is tested against a stand-in for `embed.js`. External links were not checked live.
+- Cal.com availability lives outside this repository and has to be kept in sync with `horario` by hand; at the last check, weekday-morning availability started at 09:00 while the site shows 10:00.
+- There is no `Content-Security-Policy`, because the Cal.com embed was not tested against a concrete policy.
+- The legal texts are indicative: have a professional review them before publishing a real site.
+- The share image (`og-image.jpg`) is a file: run `npm run assets` after changing the business.
+- Lighthouse has not been run.
+- The phone number in `site.config.mjs` is the demo author's WhatsApp contact; replace it when you reuse the template.
+
+## Roadmap
+
+Ideas, not commitments:
+
+- Run the suite in Firefox and WebKit as well as Chromium.
+- Add a `Content-Security-Policy` once the Cal.com embed has been tested against it.
+- Measure with Lighthouse and record the results here.
+- Check Cal.com availability against `horario` automatically.
+
+## AI assistance
+
+This project was developed with AI assistance (Claude Code). The maintainer set the requirements and direction; the code, tests and documentation were written together with an AI model.
+
+## Licences
+
+The code is released under the [MIT licence](LICENSE). It does not cover third-party assets: the fonts *Instrument Serif* and *Hanken Grotesk* (SIL Open Font License 1.1) and the demo photographs from [Unsplash](https://unsplash.com), used under the [Unsplash licence](https://unsplash.com/license).
